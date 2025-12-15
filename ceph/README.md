@@ -4,7 +4,7 @@
 ```bash
 git clone https://github.com/uoenoplab/xo-server
 ```
-Follow the instruction in the `README.md`.
+Follow the instruction in the `README.md` inside the `xo-server` repo.
 
 3. Run xo-server without migration enabled on the frontend server to populate the object store. For example:
 ```bash
