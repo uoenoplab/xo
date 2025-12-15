@@ -1,0 +1,324 @@
+# Artifact Evaluation Guide
+
+This guide helps artifact evaluators reproduce the results from our NSDI paper.
+
+## Table of Contents
+[Hardware Requirements](#hardware-requirements)
+[Software Requirements](#software-requirements)
+[Setup Instructions](#setup-instructions)
+[Running Experiments](#running-experiments)
+[Expected Results](#expected-results)
+[Troubleshooting](#troubleshooting)
+
+---
+
+## Hardware Requirements
+
+### Minimum Configuration
+
+- **Server Machines**: Exactly 6 machines required
+  - 1 client machine (runs wrk)
+  - 1 proxy server (where redirection happen)
+  - 4 backend servers
+- **CPU**: Modern x86_64 processor with multiple cores
+- **RAM**: 16GB+ per server recommended
+- **Network**:
+  - **NIC**: One of the following:
+    - **For hardware TC offload**: Mellanox ConnectX-5/6/7, Intel E810, or Netronome Agilio
+    - **For eBPF-only mode**: Any 10GbE+ NIC
+  - **Topology**: Direct connection or low-latency switch
+  - **Bandwidth**: 25GbE or higher recommended
+
+### Network Setup
+
+All machines should be on the same Layer 2 network:
+- Machines must be able to communicate directly (on the same subnet)
+- You can use any subnet (private like 192.168.x.x or your existing network)
+- Direct connection or single switch recommended for consistent results and low latency
+
+---
+
+## Software Requirements
+
+### Operating System
+
+- **Linux Kernel**: 6.6.0-generic
+- **Distribution**: Ubuntu 20.04/22.04
+
+### Required Packages
+
+Install the following on **proxy server machine**:
+
+```bash
+# Update package list
+sudo apt-get update
+
+# Build tools
+sudo apt-get install -y build-essential gcc make pkg-config git
+
+# eBPF tools
+sudo apt-get install -y bpftool libbpf-dev clang llvm
+
+# Networking tools
+sudo apt-get install -y iproute2 ethtool
+
+# Protocol buffers
+sudo apt-get install -y libprotobuf-c1 libprotobuf-c-dev protobuf-c-compiler
+
+# TLS libraries
+sudo apt-get install -y libtommath-dev libtomcrypt-dev
+
+# Network libraries
+sudo apt-get install -y libmnl-dev
+```
+
+### Client Machine
+
+On the client machine, install `wrk` HTTP benchmarking tool:
+
+```bash
+git clone https://github.com/wg/wrk.git
+cd wrk
+make
+sudo cp wrk /usr/local/bin/
+```
+
+---
+
+## Setup Instructions
+
+### Step 1: Kernel and Installation
+
+```bash
+# 1. Download kernel source (6.6.0)
+cd /usr/src
+sudo wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.6.tar.xz
+sudo tar -xf linux-6.6.tar.xz
+cd linux-6.6
+
+# 3. Configure kernel
+sudo cp /boot/config-$(uname -r) .config
+sudo make olddefconfig
+
+# 4. Compile kernel
+sudo make -j$(nproc)
+sudo make modules_install
+sudo make install
+
+# 5. Update bootloader
+sudo update-grub
+
+# 6. Reboot into new kernel
+sudo reboot
+
+# 7. Verify kernel version after reboot
+uname -r  # Should show 6.6.0 or similar
+```
+
+### Step 2: Install libforward-tc
+
+**Time estimate: 5-10 minutes per machine**
+
+This library handles TC (traffic control) operations:
+
+```bash
+# Clone and build
+cd ~
+mkdir -p Programs
+cd Programs
+git clone https://github.com/uoenoplab/libforward-tc
+cd libforward-tc
+git submodule update --init --recursive
+
+# Build the library
+make clean
+make
+
+# Verify
+ldd libforward-tc.so
+```
+
+**Note**: You may need to edit the Makefile to fix the RPATH and ensure `-lmnl` is included in the LIBS.
+
+### Step 3: Setup eBPF Programs
+
+**Time estimate: 5 minutes per machine**
+
+The eBPF programs are in a separate branch called `ebpfprog`. You need to clone them separately:
+
+```bash
+# Clone the eBPF program repository (ebpfprog branch)
+cd /root
+git clone https://github.com/uoenoplab/tcprepair-server -b ebpfprog ebpfprog/tcprepair-server
+
+# Navigate to eBPF program directory
+cd /root/ebpfprog/tcprepair-server
+
+# Compile eBPF programs
+make
+
+# Verify compilation - you should see compiled .o files and ebpfloader.sh
+ls -la *.o ebpfloader.sh
+
+# The ebpfloader.sh script will be called automatically by runxo.sh
+# You can verify the eBPF map was created after running the server:
+# bpftool map list
+# You should see output like:
+# 8: hash  name map  flags 0x0
+#         key 12B  value 20B  max_entries 4096  memlock 429376B
+```
+
+**Note**: The `runxo.sh` script expects the eBPF programs to be at `/root/ebpfprog/tcprepair-server`. Make sure this path matches.
+
+### Step 4: Build TCP Repair Server
+
+```bash
+cd ~/tcprepair-server
+
+# Build all server executables
+make clean
+make
+
+# This will create two executables:
+# - server-ebpf: eBPF-only backend
+# - server-hybrid: Hybrid (eBPF + TC) backend
+
+# Verify executables exist
+ls -la server-ebpf server-hybrid
+```
+
+**Backend types:**
+- **server-ebpf**: Uses only eBPF for packet redirection (works with any NIC)
+- **server-hybrid**: Uses both eBPF and TC for hybrid approach
+```
+
+### Step 5: Configure Network
+
+#### 5.1 Find Your Network Interface
+
+```bash
+# List all network interfaces
+ip link show
+
+# Note your interface name (e.g., enp8s0f0np0, eth0, ens1f0, etc.)
+```
+
+#### 5.2 Configure IP Addresses
+
+On each server, assign an IP address:
+
+```bash
+# Example
+sudo ip addr add 192.168.1.1/24 dev <YOUR_INTERFACE>
+sudo ip link set dev <YOUR_INTERFACE> up
+
+# Repeat for each machine with different IPs
+```
+
+#### 5.3 Create Configuration File
+
+Edit the `config` file on **all servers** to match your setup:
+
+```bash
+cd ~/tcprepair-server
+# The config file format see in `config_example`:
+vim config
+```
+
+**How to get MAC addresses:**
+```bash
+# On each machine, run:
+ip link show <YOUR_INTERFACE>
+# Look for "link/ether XX:XX:XX:XX:XX:XX"
+```
+
+**Important**:
+- Use the same `config` file on all servers
+- Ensure all machines can ping each other
+
+---
+
+## Running Experiments
+
+**Command breakdown:**
+```bash
+./runxo.sh <INTERFACE> <MIGRATION_FREQ> <CONTENT_SIZE> <SERVER_EXE> <CLIENT_ID> <PROXY_ID> <BACKEND1> <BACKEND2> <BACKEND3> <BACKEND4>
+```
+- `<INTERFACE>`: Network interface name (e.g., enp8s0f0np0)
+- `<MIGRATION_FREQ>`: Migration frequency parameter
+  - `0` = Migrate once and stay (connection goes to backend and stays there)
+  - `n` = Periodic migration (connection returns to proxy and is reassigned every n requests)
+  - Example: `20` means migrate back to proxy and reassign to new backend every 20 requests
+- `<CONTENT_SIZE>`: Object size in bytes (e.g., 4096 = 4KB)
+- `<SERVER_EXE>`: server-ebpf or server-hybrid
+- `<CLIENT_ID>`: Client machine ID
+- `<PROXY_ID>`: Proxy server ID
+- `<BACKEND1-4>`: Four backend server IDs
+
+
+**Run runxo.sh on 1 proxy and 4 backend machines** 
+(e.g.,proxy_id:35, backends_ids: 30 31 33 34):
+```bash
+cd ~/tcprepair-server
+sudo ./runxo.sh <YOUR_INTERFACE> 20 4096 server-ebpf 14 35 30 31 33 34
+```
+
+**Command parameters:**
+- `<YOUR_INTERFACE>`: Network interface name (e.g., `enp8s0f0np0`)
+- `20`: Migration frequency (controls connection migration behavior)
+  - `0`: Migrate connection once to a backend, then stay there permanently
+  - `n` (e.g., 1, 20, 40): Migrate connection back to proxy and reassign to a new backend every n requests
+- `4096`: Content/object size in bytes (4KB)
+- `server-ebpf`: Server executable to run (server-ebpf or server-hybrid)
+- `14 35 30 31 33 34`: Machine IDs (1 client + 1 proxy + 4 backends)
+  - `14` = client machine
+  - `35` = proxy server
+  - `30 31 33 34` = four backend servers
+
+**Important**: You must provide exactly 6 machine IDs in this order.
+
+Replace these with your actual machine IDs from the config file.
+
+The server should print:
+```
+Server listening on port 50000...
+Worker threads started: 8
+Ready for connections.
+```
+
+**On client machine** (machine 14):
+```bash
+# Test with 20 thread, 100 connection, 30 seconds, with your proxy's ip address (192.168.1.1)
+wrk -t 20 -c 100 -d 30 https://192.168.1.1:50000
+```
+
+You should see output like:
+```
+Running 10s test @ https://192.168.1.1:50000
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   XXX.XXus  XXX.XXus XX.XXms   XX.XX%
+    Req/Sec   XX.XXk    X.XXk    XX.XXk    XX.XX%
+  XXXXX requests in 10.00s, XXX.XXMB read
+Requests/sec:  XXXXX.XX
+Transfer/sec:     XX.XXMB
+```
+
+**Experiments on different parameters**
+Change executable servers, migration frequency, content size to reproduce the results shown in paper figuer 7.
+
+## Repository Structure
+
+```
+tcprepair-server/
+├── server.c                    # Main server implementation
+├── info_to_migrate.pb-c.c     # Protocol buffer for state serialization
+├── Makefile                    # Build configuration
+├── runxo.sh                    # Server launch script
+├── config                      # Machine ID/IP/MAC configuration
+└── ARTIFACT_EVALUATION.md      # This file
+
+ebpfprog/
+├── ebpfloader.sh          # eBPF loader script
+└── *.c                     # eBPF source files
+```

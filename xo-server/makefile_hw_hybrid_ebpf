@@ -1,0 +1,50 @@
+# -*- Makefile -*-
+
+PROG = server-ebpf server-hybrid server-hw
+#PROG = server-r server-tr server server-t
+
+all: $(PROG)
+
+CC=gcc
+CCFLAGS=-g 
+#CCFLAGS=-Wall -g 
+
+INCLUDE := -I/root/Programs/libforward-tc/include
+LDFLAGS := -L/root/Programs/libforward-tc/build -Wl,-rpath=/root/Programs/libforward-tc/build
+LIBS := -lforward-tc -lprotobuf-c -lmnl -lbpf -lrt -lpthread -ltomcrypt -ltommath
+TOPT = -DWITH_TLS -DLTC_PTHREAD -DWITH_KTLS #-DDEBUG
+# ebpf-only
+ROPT-ebpf = -DDO_REPAIR -DDO_FREQUENCY -DDO_EBPF #-DDO_TC -DDO_NBTC #-DPROFILE#-DDO_POST
+# tchw-only
+ROPT-hw = -DDO_REPAIR -DDO_FREQUENCY -DDO_TC #-DPROFILE #-DDO_POST
+# hybrid
+ROPT-hybrid = -DDO_REPAIR -DDO_FREQUENCY -DDO_EBPF -DDO_TC -DDO_NBTC #-DPROFILE#-DDO_POST
+
+server-ebpf: server.c info_to_migrate.pb-c.c
+	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS) $(TOPT) $(ROPT-ebpf)
+
+server-hw: server.c info_to_migrate.pb-c.c
+	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS) $(TOPT) $(ROPT-hw)
+
+server-hybrid: server.c info_to_migrate.pb-c.c
+	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS) $(TOPT) $(ROPT-hybrid)
+
+clean:
+	rm -f server-ebpf.o server-hw.o server-hybrid.o server-ebpf server-hw server-hybrid server-t.o server-r.o server-tr.o server.o server-r server-tr server server-t
+
+#server-r: server.c info_to_migrate.pb-c.c
+#	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS) $(ROPT)
+#
+#server-tr: server.c info_to_migrate.pb-c.c
+#	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS) $(TOPT) $(ROPT)
+#
+server-t: server.c
+	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS) $(TOPT)
+#
+#server: server.c
+#	$(CC) $^ -o $@ $(CCFLAGS) $(INCLUDE) $(LDFLAGS) $(LIBS)
+#
+#clean:
+#	rm -f server-t.o server-r.o server-tr.o server.o server-r server-tr server server-t
+
+.PHONY: clean

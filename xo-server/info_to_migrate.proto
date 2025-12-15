@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+message info_to_migrate {
+        //tls info: depends on tlse serialization
+        bytes buf = 1;
+        //tcp info
+        uint64 seq = 2;
+        uint64 ack = 3;
+        bytes sendq = 4;
+        uint64 sendq_len = 5;
+        uint64 unsentq_len = 6;
+        bytes recvq = 7;
+        uint64 recvq_len = 8;
+        uint64 self_addr = 9;
+        uint32 self_port = 10;
+        uint64 peer_addr = 11;
+        uint32 peer_port = 12;
+        uint32 mss = 13;
+        uint32 send_wscale = 14;
+        uint32 recv_wscale = 15;
+        uint64 timestamp = 16;
+        uint64 snd_wl1 = 17;
+        uint64 snd_wnd = 18;
+        uint32 max_window = 19;
+        uint64 rev_wnd = 20;
+        uint64 rev_wup = 21;
+        int32 msg_type = 22;
+        uint32 ctrl_src_port = 23;
+}
