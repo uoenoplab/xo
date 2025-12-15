@@ -10,12 +10,12 @@ apt update
 apt install vim build-essential git python3.10
 ```
 ### Clone Ceph and install dependencies
-Clone the ceph source code, use the latest v17.2.6 (Quincy), apply a patch, and install dependencies. Ensure to create the `man1` folder to avoid failure in setting up OpenJDK.
+Clone the ceph source code, use the latest v17.2.6 (Quincy), apply `ceph_xo.patch` from this repo, and install dependencies. Ensure to create the `man1` folder to avoid failure in setting up OpenJDK.
 ```bash
 git clone https://github.com/ceph/ceph
 cd ceph
 git checkout v17.2.6
-git apply ../ceph_systemd.patch
+git apply ceph_xo.patch
 mkdir -p /usr/share/man/man1
 ./install-deps.sh
 ```
