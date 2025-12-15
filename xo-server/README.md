@@ -7,8 +7,6 @@ This guide helps artifact evaluators reproduce the results from our NSDI paper.
 [Software Requirements](#software-requirements)
 [Setup Instructions](#setup-instructions)
 [Running Experiments](#running-experiments)
-[Expected Results](#expected-results)
-[Troubleshooting](#troubleshooting)
 
 ---
 
@@ -306,19 +304,3 @@ Transfer/sec:     XX.XXMB
 
 **Experiments on different parameters**
 Change executable servers, migration frequency, content size to reproduce the results shown in paper figuer 7.
-
-## Repository Structure
-
-```
-tcprepair-server/
-├── server.c                    # Main server implementation
-├── info_to_migrate.pb-c.c     # Protocol buffer for state serialization
-├── Makefile                    # Build configuration
-├── runxo.sh                    # Server launch script
-├── config                      # Machine ID/IP/MAC configuration
-└── ARTIFACT_EVALUATION.md      # This file
-
-ebpfprog/
-├── ebpfloader.sh          # eBPF loader script
-└── *.c                     # eBPF source files
-```
