@@ -4,7 +4,7 @@
 ```bash
 git clone https://github.com/uoenoplab/xo-server
 ```
-Follow the instruction in the `README.md` inside the `xo-server` repo.
+Follow the instruction in the `README.md` inside the `xo-server` repo. `xo-server` uses the Ceph configuration at `/etc/ceph.conf` to read backend server addresses, and the file should have already been setup when installing Ceph.
 
 3. Run xo-server without migration enabled on the frontend server to populate the object store. For example:
 ```bash
@@ -38,7 +38,7 @@ to populate the 8kib bucket with 1000 objects of that size. Repeat for the other
 ```
 You can use the list created in step 8 to create your desired object list.
 
-11. Run `xo-server` with migration enabled (refer to the documentation in its repo) and that it is ready, on all front and backend servers.
+11. Run `xo-server` with migration enabled (refer to the documentation in its repo), on all the frontend (gateway host) and backend servers (OSD hosts). Before executing the `./xo-server.out ...` command, ensure the NIC configuration is done according to the documentation.
 
 12. Set the object request list with `export s3_objects_input_file=(path)`.
 13. Run wrk against the frontend server, for example:
