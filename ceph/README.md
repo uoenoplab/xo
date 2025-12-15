@@ -15,7 +15,7 @@ Follow the instruction in the `README.md` inside the `xo-server` repo.
 pip install boto3
 ```
 5. Run the `create_buckets.py` in this repo to create buckets storing sizes of different objects.
-6. Run the `create_objects.py` in this report to populate the buckets, pointing to the server running `xo-server`. For example:
+6. Run the `create_objects.py` in this repo to populate the buckets, pointing to the server running `xo-server`. For example:
 ```bash
 python3 https://192.168.11.70:8080 20 8kb 1000 8192
 ```
