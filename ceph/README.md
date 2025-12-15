@@ -1,4 +1,4 @@
-### Ceph
+## Ceph
 1. Clone Ceph, build, and install it after applying `xo_ceph.patch`. Refer to `setup_ceph.md` for detailed instructions.
 2. Clone `xo-server` and build it.
 ```bash
@@ -22,9 +22,10 @@ python3 https://192.168.11.70:8080 20 8kb 1000 8192
 to populate the 8kib bucket with 1000 objects of that size. Repeat for the other buckets.
 
 7. Repeat the 5-6 for Rados Gateway, by changing the endpoints in the files and command. Also replace the login keys to the actual ones you got when setting up Rados Gateway.
-8. Extract the list of keys using `list_objects.py`. Repeat for both Rados Gateway and `xo-gateway`. They will be written to files. They can be used directly.
-9. Assuming wrk is already setup, copy `s3.lua` in this repo to the `wrk/script`.
-10. Create an object list with the following format `/(bucket name)/(object name):
+8. Extract the list of keys using `list_objects.py`. Repeat for both Rados Gateway and `xo-gateway`. They will be written to files specified in the code: e.g., `with open('rgw_obj_list/rgw_'+str(size)+'kb_obj_in_allosd.txt', 'w') as f:`. Replace the path as desired.
+
+10. Assuming wrk is already setup, copy `s3.lua` in this repo to the `wrk/script`.
+11. Create an object list with the following format `/(bucket name)/(object name):
 ```
 /1024kb/uadpjkvq
 /1024kb/krluoofu
