@@ -1,5 +1,5 @@
 ### Ceph
-1. Clone Ceph, build, and install it as usual after applying `xo_ceph.patch`. For example building instructions, refer to `setup_ceph.md`.
+1. Clone Ceph, build, and install it after applying `xo_ceph.patch`. Refer to `setup_ceph.md` for detailed instructions.
 2. Clone `xo-server` and build it.
 ```bash
 git clone https://github.com/uoenoplab/xo-server
