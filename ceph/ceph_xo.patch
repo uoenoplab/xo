@@ -1,0 +1,602 @@
+diff --git a/do_cmake.sh b/do_cmake.sh
+index 3eb9b08d8af..8d6bec389c5 100755
+--- a/do_cmake.sh
++++ b/do_cmake.sh
+@@ -53,6 +53,7 @@ else
+ fi
+ 
+ ARGS+=" -DWITH_PYTHON3=${PYBUILD}"
++ARGS+=" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_MGR_DASHBOARD_FRONTEND=OFF -DWITH_MANPAGE=OFF"
+ 
+ if type ccache > /dev/null 2>&1 ; then
+     echo "enabling ccache"
+diff --git a/src/include/rados/librados.h b/src/include/rados/librados.h
+index 31ef332403c..7f634e8204f 100644
+--- a/src/include/rados/librados.h
++++ b/src/include/rados/librados.h
+@@ -1580,6 +1580,8 @@ CEPH_RADOS_API int rados_append(rados_ioctx_t io, const char *oid,
+ CEPH_RADOS_API int rados_read(rados_ioctx_t io, const char *oid, char *buf,
+                               size_t len, uint64_t off);
+ 
++CEPH_RADOS_API int rados_get_object_osd_position(rados_ioctx_t io, const char *oid, int *acting_primary);
++
+ /**
+  * Compute checksum from object data
+  *
+diff --git a/src/librados/IoCtxImpl.cc b/src/librados/IoCtxImpl.cc
+index b9a73c87ca8..674fd5cc955 100644
+--- a/src/librados/IoCtxImpl.cc
++++ b/src/librados/IoCtxImpl.cc
+@@ -284,6 +284,16 @@ int librados::IoCtxImpl::get_object_pg_hash_position(
+   return 0;
+ }
+ 
++int librados::IoCtxImpl::get_object_osd_position(
++    const std::string& oid, int *acting_primary)
++{
++  int r = objecter->get_object_osd_position(poolid, oid, oloc.nspace);
++  if (r < 0)
++    return r;
++  *acting_primary = r;
++  return 0;
++}
++
+ void librados::IoCtxImpl::queue_aio_write(AioCompletionImpl *c)
+ {
+   get();
+diff --git a/src/librados/IoCtxImpl.h b/src/librados/IoCtxImpl.h
+index 4ab8a5b747b..05cb22fb710 100644
+--- a/src/librados/IoCtxImpl.h
++++ b/src/librados/IoCtxImpl.h
+@@ -94,6 +94,7 @@ struct librados::IoCtxImpl {
+ 
+   int get_object_hash_position(const std::string& oid, uint32_t *hash_position);
+   int get_object_pg_hash_position(const std::string& oid, uint32_t *pg_hash_position);
++  int get_object_osd_position(const std::string& oid, int *acting_primary);
+ 
+   ::ObjectOperation *prepare_assert_ops(::ObjectOperation *op);
+ 
+diff --git a/src/librados/librados_c.cc b/src/librados/librados_c.cc
+index 792768b9d8f..03bc5bc57af 100644
+--- a/src/librados/librados_c.cc
++++ b/src/librados/librados_c.cc
+@@ -1440,6 +1440,27 @@ extern "C" int LIBRADOS_C_API_DEFAULT_F(rados_read)(
+ }
+ LIBRADOS_C_API_BASE_DEFAULT(rados_read);
+ 
++extern "C" int LIBRADOS_C_API_DEFAULT_F(rados_get_object_osd_position)(
++  rados_ioctx_t io,
++  const char *o,
++  int *acting_primary)
++{
++  tracepoint(librados, rados_get_object_osd_position_enter, io, o, acting_primary);
++  librados::IoCtxImpl *ctx = (librados::IoCtxImpl *)io;
++  int ret;
++
++  ret = ctx->get_object_osd_position(std::string(o), acting_primary);
++  if (ret >= 0) {
++    tracepoint(librados, rados_get_object_osd_position_exit, -EINVAL, NULL);
++    return -EINVAL;
++  }
++
++  *acting_primary = ret;
++  tracepoint(librados, rados_get_object_osd_position_exit, ret, acting_primary);
++  return 0;
++}
++LIBRADOS_C_API_BASE_DEFAULT(rados_get_object_osd_position);
++
+ extern "C" int LIBRADOS_C_API_DEFAULT_F(rados_checksum)(
+   rados_ioctx_t io, const char *o,
+   rados_checksum_type_t type,
+diff --git a/src/msg/async/AsyncMessenger.cc b/src/msg/async/AsyncMessenger.cc
+index 3971e91ffd0..c37e6b5678a 100644
+--- a/src/msg/async/AsyncMessenger.cc
++++ b/src/msg/async/AsyncMessenger.cc
+@@ -164,7 +164,10 @@ void Processor::start()
+             return;
+           }
+ 	  worker->center.create_file_event(listen_socket.fd(), EVENT_READABLE,
+-					   listen_handler); }
++                                           listen_handler); //}
++  	  if (listen_socket.unix_fd() != -1)
++            worker->center.create_file_event(listen_socket.unix_fd(), EVENT_READABLE,
++                                             listen_handler); }
+       }
+     }, false);
+ }
+diff --git a/src/msg/async/PosixStack.cc b/src/msg/async/PosixStack.cc
+index a38e82cf39c..119adbc026a 100644
+--- a/src/msg/async/PosixStack.cc
++++ b/src/msg/async/PosixStack.cc
+@@ -216,49 +216,85 @@ class PosixConnectedSocketImpl final : public ConnectedSocketImpl {
+ class PosixServerSocketImpl : public ServerSocketImpl {
+   ceph::NetHandler &handler;
+   int _fd;
++  int _unix_fd;
++  CephContext *cct;
+ 
+  public:
+-  explicit PosixServerSocketImpl(ceph::NetHandler &h, int f,
+-				 const entity_addr_t& listen_addr, unsigned slot)
++  explicit PosixServerSocketImpl(ceph::NetHandler &h, int f, int unix_fd,
++				 const entity_addr_t& listen_addr, unsigned slot, CephContext *ctx)
+     : ServerSocketImpl(listen_addr.get_type(), slot),
+-      handler(h), _fd(f) {}
++      handler(h), _fd(f), _unix_fd(unix_fd), cct(ctx) {}
+   int accept(ConnectedSocket *sock, const SocketOptions &opts, entity_addr_t *out, Worker *w) override;
+   void abort_accept() override {
+     ::close(_fd);
+     _fd = -1;
++    ::close(_unix_fd);
++    _unix_fd = -1;
+   }
+   int fd() const override {
+     return _fd;
+   }
++  int unix_fd() const override {
++    return _unix_fd;
++  }
+ };
+ 
+ int PosixServerSocketImpl::accept(ConnectedSocket *sock, const SocketOptions &opt, entity_addr_t *out, Worker *w) {
+   ceph_assert(sock);
+   sockaddr_storage ss;
+   socklen_t slen = sizeof(ss);
+-  int sd = accept_cloexec(_fd, (sockaddr*)&ss, &slen);
++  int unix = 1;
++  int sd = accept_cloexec(_unix_fd, (sockaddr*)&ss, &slen);
+   if (sd < 0) {
+-    return -ceph_sock_errno();
++    int err = -ceph_sock_errno();
++    sd = accept_cloexec(_fd, (sockaddr*)&ss, &slen);
++    if (sd < 0) {
++      return err;
++    }
++    unix = 0;
+   }
++  assert(sd != -1);
++
++  if (unix == 1) {
++    struct sockaddr_un peeraddr;
++    socklen_t peeraddrlen = sizeof(peeraddr);
++    getsockname(sd, (struct sockaddr*)&peeraddr, &peeraddrlen);
++    int r = fcntl(sd, F_SETFL, fcntl(sd, F_GETFL, 0) | O_NONBLOCK);
++    if (r < 0) {
++      ::close(sd);
++      return -ceph_sock_errno();
++    }
+ 
+-  int r = handler.set_nonblock(sd);
+-  if (r < 0) {
+-    ::close(sd);
+-    return -ceph_sock_errno();
++    // SO_RCVBUF has no effect on domain socket!
++    r = handler.set_socket_options(sd, 0, opt.rcbuf_size);
++    if (r < 0) {
++      ::close(sd);
++      return -ceph_sock_errno();
++    }
+   }
++  else {
++    struct sockaddr_in peeraddr;
++    socklen_t peeraddrlen = sizeof(peeraddr);
++    getsockname(sd, (struct sockaddr*)&peeraddr, &peeraddrlen);
++    int r = handler.set_nonblock(sd);
++    if (r < 0) {
++      ::close(sd);
++      return -ceph_sock_errno();
++    }
+ 
+-  r = handler.set_socket_options(sd, opt.nodelay, opt.rcbuf_size);
+-  if (r < 0) {
+-    ::close(sd);
+-    return -ceph_sock_errno();
++    r = handler.set_socket_options(sd, opt.nodelay, opt.rcbuf_size);
++    if (r < 0) {
++      ::close(sd);
++      return -ceph_sock_errno();
++    }
+   }
+ 
+-  ceph_assert(NULL != out); //out should not be NULL in accept connection
+-
+   out->set_type(addr_type);
+   out->set_sockaddr((sockaddr*)&ss);
+   handler.set_priority(sd, opt.priority, out->get_family());
+ 
++  ceph_assert(NULL != out); //out should not be NULL in accept connection
++
+   std::unique_ptr<PosixConnectedSocketImpl> csi(new PosixConnectedSocketImpl(handler, *out, sd, true));
+   *sock = ConnectedSocket(std::move(csi));
+   return 0;
+@@ -307,9 +343,56 @@ int PosixWorker::listen(entity_addr_t &sa,
+     return r;
+   }
+ 
++  int listen_unix_sd = -1;
++  listen_unix_sd = socket(AF_UNIX, SOCK_STREAM, 0);
++  assert(listen_unix_sd != -1);
++
++  struct sockaddr_un unix_addr;
++  memset(&unix_addr, 0, sizeof(struct sockaddr_un));
++  //const char *tmp_path = std::getenv("TMPDIR") == NULL ? "/var/run/ceph" : std::getenv("TMPDIR");
++  //snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path) - 1, "/var/run/ceph/%s:%d", inet_ntoa(((struct sockaddr_in*)sa.get_sockaddr())->sin_addr), sa.get_port());
++  snprintf(unix_addr.sun_path, sizeof(unix_addr.sun_path) - 1, "/var/run/ceph/%d.socket", sa.get_port());
++  unix_addr.sun_family = AF_UNIX;
++
++  if (remove(unix_addr.sun_path) == -1 && errno != ENOENT) {
++    r = -ceph_sock_errno();
++    ::close(listen_unix_sd);
++    return r;
++  }
++
++  // set nonblock
++  r = net.set_nonblock(listen_unix_sd);
++  if (r < 0) {
++    ::close(listen_unix_sd);
++    return -ceph_sock_errno();
++  }
++
++  // SO_RCVBUF has no effect on domain socket!
++  r = net.set_socket_options(listen_unix_sd, 0, opt.rcbuf_size);
++  if (r < 0) {
++    ::close(listen_unix_sd);
++    return -ceph_sock_errno();
++  }
++
++  r = ::bind(listen_unix_sd, (struct sockaddr *) &unix_addr, sizeof(struct sockaddr_un));
++  assert(listen_unix_sd != -1);
++  if (r < 0) {
++    r = -ceph_sock_errno();
++    ::close(listen_unix_sd);
++    return r;
++  }
++
++  r = ::listen(listen_unix_sd, cct->_conf->ms_tcp_listen_backlog);
++  assert(listen_unix_sd != -1);
++  if (r < 0) {
++    r = -ceph_sock_errno();
++    ::close(listen_unix_sd);
++    return r;
++  }
++
+   *sock = ServerSocket(
+           std::unique_ptr<PosixServerSocketImpl>(
+-	    new PosixServerSocketImpl(net, listen_sd, sa, addr_slot)));
++            new PosixServerSocketImpl(net, listen_sd, listen_unix_sd, sa, addr_slot, cct)));
+   return 0;
+ }
+ 
+diff --git a/src/msg/async/Stack.h b/src/msg/async/Stack.h
+index 97201787c73..17499b1373c 100644
+--- a/src/msg/async/Stack.h
++++ b/src/msg/async/Stack.h
+@@ -55,6 +55,7 @@ class ServerSocketImpl {
+   virtual void abort_accept() = 0;
+   /// Get file descriptor
+   virtual int fd() const = 0;
++  virtual int unix_fd() const = 0;
+ };
+ /// \endcond
+ 
+@@ -173,6 +174,10 @@ class ServerSocket {
+     return _ssi->fd();
+   }
+ 
++  int unix_fd() const {
++    return _ssi->unix_fd();
++  }
++
+   /// get listen/bind addr
+   unsigned get_addr_slot() {
+     return _ssi->addr_slot;
+diff --git a/src/msg/async/rdma/RDMAStack.h b/src/msg/async/rdma/RDMAStack.h
+index aa64ca57e6f..c4907cd3ae5 100644
+--- a/src/msg/async/rdma/RDMAStack.h
++++ b/src/msg/async/rdma/RDMAStack.h
+@@ -302,6 +302,7 @@ class RDMAServerSocketImpl : public ServerSocketImpl {
+   virtual int accept(ConnectedSocket *s, const SocketOptions &opts, entity_addr_t *out, Worker *w) override;
+   virtual void abort_accept() override;
+   virtual int fd() const override { return server_setup_socket; }
++  virtual int unix_fd() const override { return -1; }
+ };
+ 
+ class RDMAIWARPServerSocketImpl : public RDMAServerSocketImpl {
+diff --git a/src/osdc/Objecter.cc b/src/osdc/Objecter.cc
+index e821b4ee00f..22de62a6138 100644
+--- a/src/osdc/Objecter.cc
++++ b/src/osdc/Objecter.cc
+@@ -58,6 +58,9 @@
+ #include "common/async/waiter.h"
+ #include "error_code.h"
+ 
++/********************/
++#include <fstream>
++/********************/
+ 
+ using std::list;
+ using std::make_pair;
+@@ -2740,6 +2743,50 @@ int64_t Objecter::get_object_pg_hash_position(int64_t pool, const string& key,
+   return p->raw_hash_to_pg(p->hash_key(key, ns));
+ }
+ 
++/*****************************************************************/
++int Objecter::get_object_osd_position(int64_t pool, const string& key,
++                                          const string& ns)
++{
++  // 1.int OSDMap::map_to_pg(
++  //     int64_t poolid,
++  //     const string& name,
++  //     const string& key,
++  //     const string& nspace,
++  //     pg_t *pg) const
++  //
++  // 2. bool lookup_pg_mapping(const pg_t& pg, epoch_t epoch, std::vector<int> *up,
++  //      int *up_primary, std::vector<int> *acting,
++  //      int *acting_primary)
++
++  shared_lock rl(rwlock);
++
++  int ret;
++  pg_t pg;
++  int up_primary, acting_primary;
++  vector<int> up, acting;
++
++  const std::string empty_string;
++  ret = osdmap->map_to_pg(pool, key, key, ns, &pg);
++  bool lookup_ret = lookup_pg_mapping(pg, osdmap->get_epoch(), &up, &up_primary, &acting, &acting_primary);
++
++  if (!lookup_ret) {
++    osdmap->pg_to_up_acting_osds(pg, &up, &up_primary,
++                                 &acting, &acting_primary);
++  }
++
++  std::ofstream outfile("/tmp/up_primary.txt");
++  outfile << pool << '\t' << key << '\t' << "(";
++  for (auto &osd : up)
++          outfile << osd << ' ';
++  outfile << ") (";
++  for (auto &osd : acting)
++          outfile << osd << ' ';
++  outfile << ") " << std::endl;
++
++  return acting_primary;
++}
++/*****************************************************************/
++
+ void Objecter::_prune_snapc(
+   const mempool::osdmap::map<int64_t,
+   snap_interval_set_t>& new_removed_snaps,
+diff --git a/src/osdc/Objecter.h b/src/osdc/Objecter.h
+index d9d723dca74..2b9fb19979e 100644
+--- a/src/osdc/Objecter.h
++++ b/src/osdc/Objecter.h
+@@ -2638,6 +2638,10 @@ private:
+ 				   const std::string& ns);
+   int64_t get_object_pg_hash_position(int64_t pool, const std::string& key,
+ 				      const std::string& ns);
++  /**********************************************************************/
++  int get_object_osd_position(int64_t pool, const std::string& key,
++                              const std::string& ns);
++  /**********************************************************************/
+ 
+   // messages
+  public:
+diff --git a/src/pybind/rados/c_rados.pxd b/src/pybind/rados/c_rados.pxd
+index 563f3ec6afb..0ff8a5fc8fe 100644
+--- a/src/pybind/rados/c_rados.pxd
++++ b/src/pybind/rados/c_rados.pxd
+@@ -187,6 +187,7 @@ cdef extern from "rados/librados.h" nogil:
+     int rados_writesame(rados_ioctx_t io, const char *oid, const char *buf, size_t data_len, size_t write_len, uint64_t off)
+     int rados_append(rados_ioctx_t io, const char *oid, const char *buf, size_t len)
+     int rados_read(rados_ioctx_t io, const char *oid, char *buf, size_t len, uint64_t off)
++    int rados_get_object_osd_position(rados_ioctx_t io, const char *oid, int *acting_primary)
+     int rados_remove(rados_ioctx_t io, const char *oid)
+     int rados_trunc(rados_ioctx_t io, const char *oid, uint64_t size)
+     int rados_cmpext(rados_ioctx_t io, const char *o, const char *cmp_buf, size_t cmp_len, uint64_t off)
+diff --git a/src/pybind/rados/rados.pyx b/src/pybind/rados/rados.pyx
+index abec5119d45..76d81a0cdda 100644
+--- a/src/pybind/rados/rados.pyx
++++ b/src/pybind/rados/rados.pyx
+@@ -2928,6 +2928,18 @@ returned %d, but should return zero on success." % (self.name, ret))
+             # itself and set ret_s to NULL, hence XDECREF).
+             ref.Py_XDECREF(ret_s)
+ 
++    def get_object_osd_position(self, key: str) -> int:
++        self.require_ioctx_open()
++        key_raw = cstr(key, 'key')
++        cdef:
++            char *_key = key_raw
++            int acting_primary = -1;
++        ret = rados_get_object_osd_position(self.io, _key, &acting_primary)
++        if ret != 0:
++            raise make_ex(ret, "Ioctx.get_object_osd_position(%s): failed to locate %s" % (self.name, key))
++
++        return acting_primary
++
+     def execute(self, key: str, cls: str, method: str, data: bytes, length: int = 8192) -> Tuple[int, object]:
+         """
+         Execute an OSD class method on an object.
+diff --git a/src/tracing/librados.tp b/src/tracing/librados.tp
+index 80bb79f9ce4..aded97b1f6e 100644
+--- a/src/tracing/librados.tp
++++ b/src/tracing/librados.tp
+@@ -1000,6 +1000,28 @@ TRACEPOINT_EVENT(librados, rados_read_exit,
+     )
+ )
+ 
++TRACEPOINT_EVENT(librados, rados_get_object_osd_position_enter,
++    TP_ARGS(
++        rados_ioctx_t, ioctx,
++        const char*, oid,
++        int*, acting_primary),
++    TP_FIELDS(
++        ctf_integer_hex(rados_ioctx_t, ioctx, ioctx)
++        ctf_string(oid, oid)
++        ctf_integer(int, acting_primary, acting_primary)
++    )
++)
++
++TRACEPOINT_EVENT(librados, rados_get_object_osd_position_exit,
++    TP_ARGS(
++        int, ret,
++        int*, acting_primary),
++    TP_FIELDS(
++        ctf_integer(int, ret, ret)
++        ctf_integer(int, acting_primary, acting_primary)
++    )
++)
++
+ TRACEPOINT_EVENT(librados, rados_checksum_enter,
+     TP_ARGS(
+         rados_ioctx_t, ioctx,
+diff --git a/systemd/ceph-crash.service.in b/systemd/ceph-crash.service.in
+index 8304dd61220..f01132446fc 100644
+--- a/systemd/ceph-crash.service.in
++++ b/systemd/ceph-crash.service.in
+@@ -3,7 +3,7 @@ Description=Ceph crash dump collector
+ 
+ [Service]
+ Type=simple
+-ExecStart=/usr/bin/ceph-crash
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-crash
+ Restart=always
+ RestartSec=10
+ StartLimitInterval=10min
+diff --git a/systemd/ceph-fuse@.service.in b/systemd/ceph-fuse@.service.in
+index 9c12c9ba444..0568da0efd0 100644
+--- a/systemd/ceph-fuse@.service.in
++++ b/systemd/ceph-fuse@.service.in
+@@ -8,7 +8,7 @@ PartOf=ceph-fuse.target
+ [Service]
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+-ExecStart=/usr/bin/ceph-fuse -f --cluster ${CLUSTER} %I
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-fuse -f --cluster ${CLUSTER} %I
+ LockPersonality=true
+ MemoryDenyWriteExecute=true
+ NoNewPrivileges=true
+diff --git a/systemd/ceph-immutable-object-cache@.service.in b/systemd/ceph-immutable-object-cache@.service.in
+index 62ff8dbd272..a94de07daca 100644
+--- a/systemd/ceph-immutable-object-cache@.service.in
++++ b/systemd/ceph-immutable-object-cache@.service.in
+@@ -8,7 +8,7 @@ PartOf=ceph-immutable-object-cache.target
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ ExecReload=/bin/kill -HUP $MAINPID
+-ExecStart=/usr/bin/ceph-immutable-object-cache -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-immutable-object-cache -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
+ LockPersonality=true
+ MemoryDenyWriteExecute=true
+ NoNewPrivileges=true
+diff --git a/systemd/ceph-mds@.service.in b/systemd/ceph-mds@.service.in
+index afa36702f9c..7ee0b545079 100644
+--- a/systemd/ceph-mds@.service.in
++++ b/systemd/ceph-mds@.service.in
+@@ -9,7 +9,7 @@ Wants=network-online.target local-fs.target time-sync.target remote-fs-pre.targe
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ ExecReload=/bin/kill -HUP $MAINPID
+-ExecStart=/usr/bin/ceph-mds -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-mds -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+ LockPersonality=true
+diff --git a/systemd/ceph-mgr@.service.in b/systemd/ceph-mgr@.service.in
+index 8fadc4746b3..12f9ec0f675 100644
+--- a/systemd/ceph-mgr@.service.in
++++ b/systemd/ceph-mgr@.service.in
+@@ -7,9 +7,10 @@ Wants=network-online.target local-fs.target time-sync.target remote-fs-pre.targe
+ 
+ [Service]
+ Environment=CLUSTER=ceph
++Environment=PYTHONPATH=@CMAKE_INSTALL_PREFIX@/lib/python3/dist-packages:@CMAKE_INSTALL_PREFIX@/lib/python3.10/dist-packages:@CMAKE_INSTALL_PREFIX@/lib/python3.10/dist-packages/ceph_volume-1.0.0-py3.10.egg:@CMAKE_INSTALL_PREFIX@/lib/python3.10/dist-packages/ceph-1.0.0-py3.10.egg:@CMAKE_INSTALL_PREFIX@/lib/python3.10/dist-packages/cephfs_top-0.0.1-py3.10.egg
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ ExecReload=/bin/kill -HUP $MAINPID
+-ExecStart=/usr/bin/ceph-mgr -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-mgr -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+ LockPersonality=true
+diff --git a/systemd/ceph-mon@.service.in b/systemd/ceph-mon@.service.in
+index 2eba83c3cc9..3b208cd9967 100644
+--- a/systemd/ceph-mon@.service.in
++++ b/systemd/ceph-mon@.service.in
+@@ -13,7 +13,7 @@ Wants=network-online.target local-fs.target time-sync.target remote-fs-pre.targe
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ ExecReload=/bin/kill -HUP $MAINPID
+-ExecStart=/usr/bin/ceph-mon -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-mon -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+ LockPersonality=true
+diff --git a/systemd/ceph-osd@.service.in b/systemd/ceph-osd@.service.in
+index 046500efb66..6d916a3552e 100644
+--- a/systemd/ceph-osd@.service.in
++++ b/systemd/ceph-osd@.service.in
+@@ -9,7 +9,7 @@ Wants=network-online.target local-fs.target time-sync.target remote-fs-pre.targe
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ ExecReload=/bin/kill -HUP $MAINPID
+-ExecStart=/usr/bin/ceph-osd -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/ceph-osd -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
+ ExecStartPre=@CMAKE_INSTALL_FULL_LIBEXECDIR@/ceph/ceph-osd-prestart.sh --cluster ${CLUSTER} --id %i
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+diff --git a/systemd/ceph-radosgw@.service.in b/systemd/ceph-radosgw@.service.in
+index b7474705506..94497eb331d 100644
+--- a/systemd/ceph-radosgw@.service.in
++++ b/systemd/ceph-radosgw@.service.in
+@@ -8,7 +8,7 @@ Wants=network-online.target local-fs.target time-sync.target remote-fs-pre.targe
+ [Service]
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+-ExecStart=/usr/bin/radosgw -f --cluster ${CLUSTER} --name client.%i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/radosgw -f --cluster ${CLUSTER} --name client.%i --setuser ceph --setgroup ceph
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+ LockPersonality=true
+diff --git a/systemd/ceph-rbd-mirror@.service.in b/systemd/ceph-rbd-mirror@.service.in
+index 1057892dc99..52d03c3b5cd 100644
+--- a/systemd/ceph-rbd-mirror@.service.in
++++ b/systemd/ceph-rbd-mirror@.service.in
+@@ -8,7 +8,7 @@ PartOf=ceph-rbd-mirror.target
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ ExecReload=/bin/kill -HUP $MAINPID
+-ExecStart=/usr/bin/rbd-mirror -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/rbd-mirror -f --cluster ${CLUSTER} --id %i --setuser ceph --setgroup ceph
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+ LockPersonality=true
+diff --git a/systemd/cephfs-mirror@.service.in b/systemd/cephfs-mirror@.service.in
+index bed9d195302..7cc14343b59 100644
+--- a/systemd/cephfs-mirror@.service.in
++++ b/systemd/cephfs-mirror@.service.in
+@@ -7,7 +7,7 @@ PartOf=cephfs-mirror.target
+ [Service]
+ Environment=CLUSTER=ceph
+ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+-ExecStart=/usr/bin/cephfs-mirror --id %i --cluster ${CLUSTER} -f --setuser ceph --setgroup ceph
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/cephfs-mirror --id %i --cluster ${CLUSTER} -f --setuser ceph --setgroup ceph
+ LimitNOFILE=1048576
+ LimitNPROC=1048576
+ LockPersonality=true
+diff --git a/systemd/rbdmap.service.in b/systemd/rbdmap.service.in
+index 6644508cf0d..0933676d2ac 100644
+--- a/systemd/rbdmap.service.in
++++ b/systemd/rbdmap.service.in
+@@ -9,9 +9,9 @@ EnvironmentFile=-@SYSTEMD_ENV_FILE@
+ Environment=RBDMAPFILE=/etc/ceph/rbdmap
+ Type=oneshot
+ RemainAfterExit=yes
+-ExecStart=/usr/bin/rbdmap map
+-ExecReload=/usr/bin/rbdmap map
+-ExecStop=/usr/bin/rbdmap unmap-all
++ExecStart=@CMAKE_INSTALL_PREFIX@/bin/rbdmap map
++ExecReload=@CMAKE_INSTALL_PREFIX@/bin/rbdmap map
++ExecStop=@CMAKE_INSTALL_PREFIX@/bin/rbdmap unmap-all
+ 
+ [Install]
+ WantedBy=multi-user.target
