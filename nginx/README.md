@@ -1,4 +1,4 @@
-### NGINX
+## NGINX
 1. Clone and setup libforward-tc
 ```bash
 mkdir xo_nginx
