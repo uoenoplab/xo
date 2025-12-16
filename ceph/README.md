@@ -50,7 +50,7 @@ You can use the list created in step 8 to create your desired object list.
 
 12. On the client host, specify the object request list with `export s3_objects_input_file=(path)`.
 
-13. Run wrk against the frontend server from the client host, for example:
+13. Run wrk against the frontend server from the client host, for example, to use 32 threads and 200 connections for 10 seconds:
 ```
 ./wrk -t32 -c200 -d10 --latency -s ./scripts/s3.lua https://192.168.11.70:8080
 ```
