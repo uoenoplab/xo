@@ -23,9 +23,9 @@ This guide helps artifact evaluators reproduce the results from our NSDI paper.
 - **Network**:
   - **NIC**: One of the following:
     - **For hardware TC offload**: Mellanox ConnectX-5/6/7, Intel E810, or Netronome Agilio
-    - **For eBPF-only mode**: Any 10GbE+ NIC
+    - **For eBPF-only mode**: Any NIC
   - **Topology**: Direct connection or low-latency switch
-  - **Bandwidth**: 25GbE or higher recommended
+  - **Bandwidth**: 25GbE on Backends and 100GbE on proxy or higher recommended
 
 ### Network Setup
 
@@ -115,8 +115,6 @@ uname -r  # Should show 6.6.0 or similar
 
 ### Step 2: Install libforward-tc
 
-**Time estimate: 5-10 minutes per machine**
-
 This library handles TC (traffic control) operations:
 
 ```bash
@@ -136,11 +134,7 @@ make
 ldd libforward-tc.so
 ```
 
-**Note**: You may need to edit the Makefile to fix the RPATH and ensure `-lmnl` is included in the LIBS.
-
 ### Step 3: Setup eBPF Programs
-
-**Time estimate: 5 minutes per machine**
 
 The eBPF programs are in the folder `xo/xo-server/ebpfprog`. 
 
@@ -167,7 +161,7 @@ ls -la *.o ebpfloader.sh
 ### Step 4: Build TCP Repair Server
 
 ```bash
-cd ~/xo-server
+cd ~/xo/xo-server
 
 # Build all server executables
 make clean
@@ -299,4 +293,4 @@ Transfer/sec:     XX.XXMB
 ```
 
 **Experiments on different parameters**
-Change executable servers, migration frequency, content size to reproduce the results shown in paper figuer 7.
+Change executable servers, migration frequency, content size to reproduce the throughput results shown in paper figuer 7.
