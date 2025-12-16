@@ -1,6 +1,6 @@
 
 # Setting up Ceph from source
-This guide shows the installation and configuration of Ceph. We assume all hosts have the same environment, configuraiton, and software installed.
+This guide shows the installation and configuration of Ceph. In the following, we use three backend hosts (OSDs), one monitor host, and one gateway host (Rados Gateway). There should be one extra host acting as a client. We assume all hosts have the same environment, configuration, and software installed. 
 ## Download Ceph
 Use Ubuntu Jammy 22.04 LTS. Install dependencies. Ensure Python is not installed.
 ### Setup basic dependencies
