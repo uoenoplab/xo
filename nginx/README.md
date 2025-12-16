@@ -25,18 +25,18 @@ git checkout xo-basic
 make -j 16
 ```
 3. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`.
-4. On every machine, setup the eBPF programs and tc by running `./reset.sh`. Change the inerface name (`IFNAME`) in the script.
+4. On every server machines, setup the eBPF programs and tc by running `./reset.sh`. Change the inerface name (`IFNAME`) in the script.
 5. Run the code on every server, including frontend and backends.
 ```bash
 ./objs/nginx -c `pwd`/conf/xo.conf
 ```
-6. On the client machine, setup WRK.
+6. On the client machine, setup wrk.
 ```bash
 git clone https://github.com/wg/wrk.git
 cd wrk
 make -j 16
 ```
-7. Run WRK against the frontend server, specifying return object size as request, for example:
+7. On the client host, run wrk against the frontend server, specifying return object size as request, for example, to request 2MiB objects:
 ```bash
 ./wrk -c 100 -t 28 -d 5s http://192.168.11.51:80/$((2*1024*1024))
 ```
