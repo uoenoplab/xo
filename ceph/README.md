@@ -1,7 +1,7 @@
 ## Ceph
 1. Clone Ceph, build, and install it after applying `ceph_xo.patch`. Refer to `setup_ceph.md` for detailed instructions.
 
-2. Clone `xo-server` and build it.
+2. If you have copied `libforward-tc.so` into `/usr/local/lib` for NGINX, remove it. Otherwise proceed to clone `xo-server` and build it.
 ```bash
 git clone https://github.com/uoenoplab/xo-server
 ```
