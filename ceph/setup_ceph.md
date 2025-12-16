@@ -1,6 +1,6 @@
 
 # Setting up Ceph from source
-This guide shows the installation and configuration of Ceph. We assume all hosts share the same file system via NFS.
+This guide shows the installation and configuration of Ceph. We assume all hosts have the same environment, configuraiton, and software installed.
 ## Download Ceph
 Use Ubuntu Jammy 22.04 LTS. Install dependencies. Ensure Python is not installed.
 ### Setup basic dependencies
