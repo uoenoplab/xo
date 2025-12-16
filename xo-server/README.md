@@ -142,15 +142,11 @@ ldd libforward-tc.so
 
 **Time estimate: 5 minutes per machine**
 
-The eBPF programs are in a separate branch called `ebpfprog`. You need to clone them separately:
+The eBPF programs are in the folder `xo/xo-server/ebpfprog`. 
 
 ```bash
-# Clone the eBPF program repository (ebpfprog branch)
-cd /root
-git clone https://github.com/uoenoplab/tcprepair-server -b ebpfprog ebpfprog/tcprepair-server
-
 # Navigate to eBPF program directory
-cd /root/ebpfprog/tcprepair-server
+cd xo/xo-server/ebpfprog
 
 # Compile eBPF programs
 make
@@ -166,12 +162,12 @@ ls -la *.o ebpfloader.sh
 #         key 12B  value 20B  max_entries 4096  memlock 429376B
 ```
 
-**Note**: The `runxo.sh` script expects the eBPF programs to be at `/root/ebpfprog/tcprepair-server`. Make sure this path matches.
+**Note**: The `runxo.sh` script expects the eBPF programs to be at `~/xo/xo-server/ebpfprog`. Make sure this path matches.
 
 ### Step 4: Build TCP Repair Server
 
 ```bash
-cd ~/tcprepair-server
+cd ~/xo-server
 
 # Build all server executables
 make clean
@@ -218,7 +214,7 @@ sudo ip link set dev <YOUR_INTERFACE> up
 Edit the `config` file on **all servers** to match your setup:
 
 ```bash
-cd ~/tcprepair-server
+cd ~/xo/xo-server
 # The config file format see in `config_example`:
 vim config
 ```
@@ -257,7 +253,7 @@ ip link show <YOUR_INTERFACE>
 **Run runxo.sh on 1 proxy and 4 backend machines** 
 (e.g.,proxy_id:35, backends_ids: 30 31 33 34):
 ```bash
-cd ~/tcprepair-server
+cd ~/xo/xo-server
 sudo ./runxo.sh <YOUR_INTERFACE> 20 4096 server-ebpf 14 35 30 31 33 34
 ```
 
