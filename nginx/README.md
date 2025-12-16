@@ -1,4 +1,5 @@
 ## NGINX
+We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed.
 1. Clone and setup libforward-tc
 ```bash
 mkdir xo_nginx
