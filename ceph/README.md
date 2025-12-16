@@ -18,7 +18,7 @@ pip3 install boto3
 ```
 Ensure `~/.aws/credentials` is created and configured. This should have already been prepared as part of `setup_ceph.md`. The same credentials can be used for both Rados Gateway and `xo-server` because `xo-server` does not implement authentication currently and will simply ignore it.
 
-5. Run the `create_buckets.py` in this repo to create buckets storing sizes of different objects. Changh the `[8, 16, 32, 64, 256, 1024, 4096,0869]` array in the code for other sizes. Change the `endpoint_url` in the code to point to your gateway.
+5. Run the `create_buckets.py` in this repo to create buckets storing sizes of different objects. Changh the `[8, 16, 32, 64, 256, 1024, 2048, 4096]` array in the code for other sizes. Change the `endpoint_url` in the code to point to your gateway.
 
 6. Run the `create_objects.py` in this repo to populate the buckets, pointing to the server running the gateway. For example:
 ```bash
