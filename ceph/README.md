@@ -6,24 +6,25 @@ git clone https://github.com/uoenoplab/xo-server
 ```
 Follow the instruction in the `README.md` inside the `xo-server` repo. `xo-server` uses the Ceph configuration at `/etc/ceph.conf` to read backend server addresses, and the file should have already been setup when installing Ceph.
 
-3. Run xo-server without migration enabled on the frontend server to populate the object store. For example:
+3. Run xo-server without migration enabled on the frontend server to populate the object store. For example, to run with 32 threads (`32`), with no migration enabled (subsequent `0` in the command):
 ```bash
 ./server.out eth0 32 0 0 0 0
 ```
-4. Install boto3:
+4. Install boto3. This needs to be done also on the client machine:
 ```bash
-pip install boto3
+pip3 install boto3
 ```
-5. Run the `create_buckets.py` in this repo to create buckets storing sizes of different objects. Change the `[8, 16, 32, 64, 256, 1024, 4096, 8192]` array in the code for other sizes.
-6. Run the `create_objects.py` in this repo to populate the buckets, pointing to the server running `xo-server`. For example:
+Ensure `~/.aws/credentials` is created and configured. This should have already been prepared as part of `setup_ceph.md`. The same credentials can be used for both Rados Gateway and `xo-server` because `xo-server` does not implement authentication currently and will simply ignore it.
+5. Run the `create_buckets.py` in this repo to create buckets storing sizes of different objects. Changh the `[8, 16, 32, 64, 256, 1024, 4096,0869]` array in the code for other sizes. Change the `endpoint_url` in the code to point to your gateway.
+6. Run the `create_objects.py` in this repo to populate the buckets, pointing to the server running the gateway. For example:
 ```bash
 python3 create_objects.py https://192.168.11.70:8080 20 8kb 1000 8192
 ```
 to populate the 8kib bucket with 1000 objects of that size. Repeat for the other buckets.
 
-7. Repeat the 5-6 for Rados Gateway, by changing the endpoints in the files and command. Also, replace the login keys to the actual ones you got when setting up Rados Gateway. In `create_objects.py`, replace `aws_access_key_id` with the actual ID, and `aws_secret_access_key` with the actual key.
-8. Extract the list of keys using `list_objects.py`. Repeat for both Rados Gateway and `xo-gateway`. They will be written to files specified in the code: e.g., `with open('rgw_obj_list/rgw_'+str(size)+'kb_obj_in_allosd.txt', 'w') as f:`. Replace the path as desired.
-9. Assuming wrk is already setup, copy `s3.lua` in this repo to the `wrk/script`.
+7. Repeat the 5-6 for Rados Gateway, by changing the endpoints in the files and command. In `create_buckets.py`, edit the `endpoint_url`.
+8. Extract the list of keys by running `python3 list_buckets.py`. Repeat for both Rados Gateway and `xo-server`. They will be written to files specified in the code: e.g., `with open('rgw_obj_list/rgw_'+str(size)+'kb_obj_in_allosd.txt', 'w') as f:`. Replace the path as desired. The endpoint can be changed by editing the `endpoint_url` in the file.
+9. Assuming wrk is already setup, copy `s3.lua` in this repo to the `wrk/script`. Inside the script, replace the login keys to the actual ones you got when setting up Rados Gateway in `s3.lau`. They are `key` and `secret`.
 10. Create an object list with the following format `/(bucket name)/(object name)`:
 ```
 /1024kb/uadpjkvq
@@ -38,11 +39,10 @@ to populate the 8kib bucket with 1000 objects of that size. Repeat for the other
 ```
 You can use the list created in step 8 to create your desired object list.
 
-11. Run `xo-server` with migration enabled (refer to the documentation in its repo), on all the frontend (gateway host) and backend servers (OSD hosts). Before executing the `./xo-server.out ...` command, ensure the NIC configuration is done according to the documentation.
-
-12. Set the object request list with `export s3_objects_input_file=(path)`.
-13. Run wrk against the frontend server, for example:
+11. Run `xo-server` with migration enabled, on all the frontend (gateway host) and backend servers (OSD hosts). Before executing the `./xo-server.out ...` command, ensure the NIC configuration is done on all the server hosts according to the documentation. Refer to the `README.md` in the `xo-server` repo for parameters, including enabling migration, using sofware or hardware flow stiring, enabling hybrid.
+12. On the client host, specify the object request list with `export s3_objects_input_file=(path)`.
+13. Run wrk against the frontend server from the client host, for example:
 ```
 ./wrk -t32 -c200 -d10 --latency -s ./scripts/s3.lua https://192.168.11.70:8080
 ```
-For Rados Gateway, change the end point, and replace the login keys to the actual ones you got when setting up Rados Gateway in `s3.lau`. They are `key` and `secret`.
+For Rados Gateway, change the end point and repeat.
