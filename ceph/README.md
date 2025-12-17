@@ -1,13 +1,13 @@
 ## Ceph
 1. Clone Ceph, build, and install it after applying `ceph_xo.patch`. Refer to `setup_ceph.md` for detailed instructions.
 
-2. If you have copied `libforward-tc.so` into `/usr/local/lib` for NGINX, remove it. Otherwise proceed to clone `xo-server` and build it.
+2. If you have copied `libforward-tc.so` into `/usr/local/lib` for NGINX, remove it. Otherwise proceed to and build XO object gateway.
 ```bash
-git clone https://github.com/uoenoplab/xo-server
+cd xo-object-gateway
 ```
-Follow the instruction in the `README.md` inside the `xo-server` repo. `xo-server` uses the Ceph configuration at `/etc/ceph.conf` to read backend server addresses, and the file should have already been setup when installing Ceph.
+Follow the instruction in the `README.md` inside the `xo-object-gateway` folder. The gateway uses the Ceph configuration at `/etc/ceph.conf` to read backend server addresses, and the file should have already been setup when installing Ceph.
 
-3. Run xo-server without migration enabled on the frontend server to populate the object store. For example, to run with 32 threads (`32`), with no migration enabled (subsequent `0` in the command):
+3. Run the gateway without migration enabled on the frontend server to populate the object store. For example, to run with 32 threads (`32`), with no migration enabled (subsequent `0` in the command):
 ```bash
 ./server.out eth0 32 0 0 0 0
 ```
@@ -16,7 +16,7 @@ Follow the instruction in the `README.md` inside the `xo-server` repo. `xo-serve
 ```bash
 pip3 install boto3
 ```
-Ensure `~/.aws/credentials` is created and configured. This should have already been prepared as part of `setup_ceph.md`. The same credentials can be used for both Rados Gateway and `xo-server` because `xo-server` does not implement authentication currently and will simply ignore it.
+Ensure `~/.aws/credentials` is created and configured. This should have already been prepared as part of `setup_ceph.md`. The same credentials can be used for both Rados Gateway and XO object gateway because XO object gateway does not implement authentication currently and will simply ignore it.
 
 5. Run the `create_buckets.py` in this repo to create buckets storing sizes of different objects. Changh the `[8, 16, 32, 64, 256, 1024, 2048, 4096]` array in the code for other sizes. Change the `endpoint_url` in the code to point to your gateway.
 
@@ -28,7 +28,7 @@ to populate the 8kib bucket with 1000 objects of that size. Repeat for the other
 
 7. Repeat the 5-6 for Rados Gateway, by changing the endpoints in the files and command. In `create_buckets.py`, edit the `endpoint_url`.
 
-8. Extract the list of keys by running `python3 list_buckets.py`. Repeat for both Rados Gateway and `xo-server`. They will be written to files specified in the code: e.g., `with open('rgw_obj_list/rgw_'+str(size)+'kb_obj_in_allosd.txt', 'w') as f:`. Replace the path as desired. The endpoint can be changed by editing the `endpoint_url` in the file.
+8. Extract the list of keys by running `python3 list_buckets.py`. Repeat for both Rados Gateway and XO object gateway. They will be written to files specified in the code: e.g., `with open('rgw_obj_list/rgw_'+str(size)+'kb_obj_in_allosd.txt', 'w') as f:`. Replace the path as desired. The endpoint can be changed by editing the `endpoint_url` in the file.
 
 9. Assuming wrk is already setup, copy `s3.lua` in this repo to the `wrk/script`. Inside the script, replace the login keys to the actual ones you got when setting up Rados Gateway in `s3.lau`. They are `key` and `secret`.
 
@@ -46,7 +46,7 @@ to populate the 8kib bucket with 1000 objects of that size. Repeat for the other
 ```
 You can use the list created in step 8 to create your desired object list.
 
-11. Run `xo-server` with migration enabled, on all the frontend (gateway host) and backend servers (OSD hosts). Before executing the `./xo-server.out ...` command, ensure the NIC configuration is done on all the server hosts according to the documentation. Refer to the `README.md` in the `xo-server` repo for parameters, including enabling migration, using sofware or hardware flow stiring, enabling hybrid.
+11. Run XO object gateway with migration enabled, on all the frontend (gateway host) and backend servers (OSD hosts). Before executing the `./server.out ...` command, ensure the NIC configuration is done on all the server hosts according to the documentation. Refer to the `README.md` in the `xo-object-gateway` folder for parameters, including enabling migration, using sofware or hardware flow stiring, enabling hybrid.
 
 12. On the client host, specify the object request list with `export s3_objects_input_file=(path)`.
 

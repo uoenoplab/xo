@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+message socket_serialize {
+        //tcp info
+        bytes ktlsbuf = 1;
+        uint64 seq = 2;
+        uint64 ack = 3;
+        bytes sendq = 4;
+        uint64 sendq_len = 5;
+        uint64 unsentq_len = 6;
+        bytes recvq = 7;
+        uint64 recvq_len = 8;
+        uint64 self_addr = 9;
+        uint32 self_port = 10;
+        uint64 peer_addr = 11;
+	uint64 peer_mac = 12;
+        uint32 peer_port = 13;
+        uint32 mss = 14;
+        uint32 send_wscale = 15;
+        uint32 recv_wscale = 16;
+        uint64 timestamp = 17;
+        uint64 snd_wl1 = 18;
+        uint64 snd_wnd = 19;
+        uint32 max_window = 20;
+        uint64 rev_wnd = 21;
+        uint64 rev_wup = 22;
+        int32 msg_type = 23;
+        uint32 ctrl_src_port = 24;
+
+	// http client
+	int32 method = 25;
+	string bucket_name = 26;
+	string object_name = 27;
+	string uri_str = 28;
+	int64 object_size = 29;
+        int32 acting_primary_osd_id = 30;
+}
