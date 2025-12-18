@@ -27,7 +27,7 @@ We assume four backend hosts, one front end host, and one client host. All hosts
 ```bash
 mkdir xo_nginx
 cd xo_nginx
-cp -r ../../libforward-tc .
+tar -xvzf ../../libforward-tc
 cd libforward-tc
 git checkout nginx
 mkdir build

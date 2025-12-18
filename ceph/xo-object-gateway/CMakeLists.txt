@@ -22,7 +22,7 @@ FetchContent_MakeAvailable(llhttp)
 
 # add libforward source
 ExternalProject_Add(libforward-tc
-    GIT_REPOSITORY ../../../../libforward-tc
+    URL ../../../../libforward-tc.tgz
     SOURCE_DIR libs/libforward-tc
     UPDATE_DISCONNECTED true
     GIT_TAG main
