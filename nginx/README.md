@@ -1,10 +1,33 @@
 ## NGINX
 We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed.
-1. Clone and setup libforward-tc
+
+1. Install all of the following libraries and development files:
+- LibXml2
+- librados2
+- uriparser
+- OpenSSL
+- PkgConfig
+- inih
+- libprotobuf-c
+- proto-c
+- CMake
+- libzlog
+- libmnl-dev
+- elfutils
+- libelf-dev
+- libbpf
+- bison
+- flex
+- clang
+- llvm
+- gcc-multilib
+- libz
+
+2. Setup libforward-tc.
 ```bash
 mkdir xo_nginx
 cd xo_nginx
-git clone https://github.com/uoenoplab/libforward-tc
+cp -r ../../libforward-tc .
 cd libforward-tc
 git checkout nginx
 mkdir build
@@ -15,28 +38,30 @@ cp ../include/forward.h /usr/local/include/
 cp ../include/ebpf_forward.h /usr/local/include/
 cp libforward-tc.so /usr/local/lib
 ```
-2. Clone NGINX
+
+3. Build NGINX
 ```bash
-cd ..
-git clone https://github.com/uoenoplab/nginx
-cd nginx
-git checkout xo-basic
+cd ../../nginx
 ./auto/configure --add-module=./modules/ngx_http_handoff_module
 make -j 16
 ```
-3. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`.
-4. On every server machines, setup the eBPF programs and tc by running `./reset.sh`. Change the inerface name (`IFNAME`) in the script.
-5. Run the code on every server, including frontend and backends.
+4. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`.
+
+5. On every server machines, setup the eBPF programs and tc by running `./reset.sh`. Change the inerface name (`IFNAME`) in the script.
+
+6. Run the code on every server, including frontend and backends.
 ```bash
 ./objs/nginx -c `pwd`/conf/xo.conf
 ```
-6. On the client machine, setup wrk.
+
+7. On the client machine, setup wrk.
 ```bash
 git clone https://github.com/wg/wrk.git
 cd wrk
 make -j 16
 ```
-7. On the client host, run wrk against the frontend server, specifying return object size as request, for example, to request 2MiB objects:
+
+8. On the client host, run wrk against the frontend server, specifying return object size as request, for example, to request 2MiB objects:
 ```bash
 ./wrk -c 100 -t 28 -d 5s http://192.168.11.51:80/$((2*1024*1024))
 ```

@@ -49,7 +49,7 @@ chown ceph:ceph /var/run/ceph
 chown ceph:ceph /var/lib/ceph
 ```
 ### Create the configuration file
-Create `/etc/ceph/ceph.conf` with the following. Replace the IP addresses (`192.168.11.153`) and hostnames (`n04`) as appropriate.
+Create `/etc/ceph/ceph.conf` with the following. Replace the IP addresses (e.g., `192.168.11.153`, `192.168.11.0/24`) and hostnames (`n04`) as appropriate.
 ```
 [global]
 fsid = 03810e63-857e-4410-80ce-1232adc8d711

@@ -11,7 +11,7 @@ XO gateway needs the following dependencies. Install their development files.
 - inih
 - libprotobuf-c
 - proto-c
-- libforward-tc (automatically fetched)
+- libforward-tc (automatically fetched from `xo/libforward-tc`)
 - llhttp (automatically fetched)
 - CMake
 - libzlog
@@ -26,7 +26,7 @@ XO gateway needs the following dependencies. Install their development files.
 - gcc-multilib
 - libz
 ### Ceph
-Ceph should be built with the following patch when building Ceph to enable a special getter function in `librados` for retrieving object location: https://patch-diff.githubusercontent.com/raw/ceph/ceph/pull/60607.patch
+Ceph should be built with the following patch when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
 ### Configuration
 Enter the folder and configure with CMake.
 ```bash
