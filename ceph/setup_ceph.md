@@ -1,4 +1,3 @@
-
 # Setting up Ceph from source
 This guide shows the installation and configuration of Ceph. In the following, we use three backend hosts (OSDs), one monitor host, and one gateway host (Rados Gateway). There should be one extra host acting as a client. We assume all hosts have the same environment, configuration, and software installed. 
 ## Download Ceph
@@ -30,8 +29,8 @@ ninja install
 ### Configure hostnames
 Ceph may use hostnames to connect between components in different servers. Configure them in `/etc/hosts`. For example:
 ```
-192.168.11.153	n04	# ceph mon
-192.168.11.133	n05	# ceph rgw
+192.168.11.153	n04	# ceph mon and mgr
+192.168.11.133	n05	# ceph rados gateway
 192.168.11.142	n09	# ceph OSD0
 192.168.11.161	n11	# ceph OSD1
 192.168.11.144	n12	# ceph OSD2
@@ -139,7 +138,7 @@ mkdir -p /var/lib/ceph/mgr/ceph-n04
 ceph auth get-or-create mgr.$name mon 'allow profile mgr' osd 'allow *' mds 'allow *'
 ```
 Put the output on the screen in `/var/lib/ceph/mgr/ceph-n04/keyring`.
-Start the manager.
+Start the manager on the same machine tha runs the monitor (`n04`).
 ```bash
 # pip3 install jsonpatch
 # systemctl start ceph-mgr@n04
@@ -173,7 +172,7 @@ mgr: n04(active, starting, since 2s)
 ...
 ```
 ## Finishing touches
-Enable messenger v2 protocol.
+Enable messenger v2 protocol. Run the following commands on the monitor host.
 ```bash
 ceph mon enable-msgr2
 ```
@@ -187,7 +186,7 @@ ceph config set mon mon_warn_on_insecure_global_id_reclaim_allowed true
 ceph config set mon auth_allow_insecure_global_id_reclaim false
 ```
 ## Test librados
-Test if librados work. With the following.
+Test if librados work on the gateway machine (e.g., `n05`). With the following.
 ```python3
 import rados
 
@@ -216,7 +215,7 @@ print(cluster.list_pools())
 cluster.shutdown()
 ```
 ## Configure Rados Gateway
-Configure Rados Gateway to enable S3 access from web clients. SSH into the machine where the gateway is installed.
+Configure Rados Gateway on the gateway host to enable S3 access from web clients. SSH into the machine where the gateway is installed.
 ```bash
 mkdir -p /var/lib/ceph/radosgw/ceph-rgw.`hostname -s`
 ```
@@ -239,7 +238,7 @@ host = n05
 keyring = /var/lib/ceph/radosgw/ceph-rgw.n05/keyring
 rgw_frontends = beast endpoint=192.168.11.133:80 verify_ssl=false ssl_endpoint=192.168.11.133:443 ssl_certificate=/var/lib/ceph/radosgw/ceph-rgw.n05/n05-crt.pem ssl_private_key=/var/lib/ceph/radosgw/ceph-rgw.n05/n05-key.pem
 ```
-Start the gateway and check its status.
+Start the gateway on the gateway host and check its status.
 ```bash
 # systemctl restart ceph-radosgw@rgw.`hostname -s`
 # systemctl status ceph-radosgw@rgw.`hostname -s`
@@ -256,7 +255,7 @@ Start the gateway and check its status.
 Jul 31 11:19:52 n05 systemd[1]: Started Ceph rados gateway.
 
 ```
-Ensure that the gateway is responsive by sending a GET request from HTTP and HTTPS.
+Ensure that the gateway is responsive by sending a GET request from HTTP and HTTPS from the client machine.
 ```bash
 root@n06:~# curl http://n05
 <?xml version="1.0" encoding="UTF-8"?><ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>anonymous</ID><DisplayName></DisplayName></Owner><Buckets></Buckets></ListAllMyBucketsResult>root@n06:~# 
@@ -284,11 +283,11 @@ aws_access_key_id = ...
 aws_secret_access_key = ...
 ```
 ### Test the gateway
-Install the Boto3 package.
+Install the Boto3 package on the client host.
 ```bash
 pip3 install boto3
 ```
-Run the following in Python3.
+Run the following in Python3 from the client host.
 ```python3
 import boto3
 
