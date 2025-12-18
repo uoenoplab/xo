@@ -22,10 +22,8 @@ FetchContent_MakeAvailable(llhttp)
 
 # add libforward source
 ExternalProject_Add(libforward-tc
-    URL ../../../../libforward-tc.tgz
-    SOURCE_DIR libs/libforward-tc
+    SOURCE_DIR ../../libforward-tc
     UPDATE_DISCONNECTED true
-    GIT_TAG main
     #BUILD_IN_SOURCE ON
     #CONFIGURE_COMMAND ./configure
     #BUILD_COMMAND make -j 32

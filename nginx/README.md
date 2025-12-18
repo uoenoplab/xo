@@ -27,9 +27,8 @@ We assume four backend hosts, one front end host, and one client host. All hosts
 ```bash
 mkdir xo_nginx
 cd xo_nginx
-tar -xvzf ../../libforward-tc
+cp -r ../libforward-tc .
 cd libforward-tc
-git checkout nginx
 mkdir build
 cd build
 cmake .. && make -j 16
@@ -45,6 +44,7 @@ cd ../../nginx
 ./auto/configure --add-module=./modules/ngx_http_handoff_module
 make -j 16
 ```
+
 4. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`.
 
 5. On every server machines, setup the eBPF programs and tc by running `./reset.sh`. Change the inerface name (`IFNAME`) in the script.
