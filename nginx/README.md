@@ -1,5 +1,5 @@
 ## NGINX
-We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed.
+We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed. The NGINX code is based on nginx-1.27.3-RELEASE.
 
 1. Install all of the following libraries and development files:
 - LibXml2
@@ -61,7 +61,7 @@ cd wrk
 make -j 16
 ```
 
-8. On the client host, run wrk against the frontend server, specifying return object size as request, for example, to request 2MiB objects:
+8. On the client host, run wrk against the frontend server (replace `http://192.168.11.51:80` to you frontend server's address), specifying return object size as request (i.e. `/(size in byte)`), for example, to request 2MiB objects using 100 connections and 28 threads for 5 seconds:
 ```bash
 ./wrk -c 100 -t 28 -d 5s http://192.168.11.51:80/$((2*1024*1024))
 ```
