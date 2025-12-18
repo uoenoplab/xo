@@ -5,7 +5,7 @@
 ```bash
 cd xo-object-gateway
 ```
-Follow the instruction in the `README.md` inside the `xo-object-gateway` folder. The gateway uses the Ceph configuration at `/etc/ceph.conf` to read backend server addresses, and the file should have already been setup when installing Ceph.
+Follow the instruction in the `README.md` inside the `xo-object-gateway` folder. The gateway uses the Ceph configuration at `/etc/ceph/ceph.conf` to read backend server addresses, and the file should have already been setup when installing Ceph.
 
 3. Run the gateway without migration enabled on the frontend server to populate the object store. For example, to run with 32 threads (`32`), with no migration enabled (subsequent `0` in the command):
 ```bash
