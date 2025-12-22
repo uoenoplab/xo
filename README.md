@@ -41,7 +41,7 @@ Install the following on **proxy server machine**:
 sudo apt-get update
 
 # Build tools
-sudo apt-get install -y build-essential gcc make pkg-config git unzip wget
+sudo apt-get install -y build-essential gcc make pkg-config git unzip wget flex bison bc
 
 # eBPF tools
 sudo apt-get install -y linux-tools-common libbpf-dev clang llvm
