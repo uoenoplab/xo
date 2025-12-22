@@ -80,7 +80,7 @@ sudo cp wrk /usr/local/bin/
 # 1. Download kernel source (6.6.0)
 cd /usr/src
 sudo wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.6.tar.xz
-sudo tar -xf linux-6.6.tar.xz
+sudo tar xf linux-6.6.tar.xz
 cd linux-6.6
 
 # 3. Configure kernel
