@@ -44,7 +44,7 @@ sudo apt-get update
 sudo apt-get install -y build-essential gcc make pkg-config git
 
 # eBPF tools
-sudo apt-get install -y bpftool libbpf-dev clang llvm
+sudo apt-get install -y linux-tools-common libbpf-dev clang llvm
 
 # Networking tools
 sudo apt-get install -y iproute2 ethtool
