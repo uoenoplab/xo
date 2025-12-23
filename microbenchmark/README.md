@@ -13,20 +13,7 @@ This guide helps artifact evaluators reproduce the results from our NSDI paper.
 
 ### Step 1: Install libforward-tc
 
-This library handles TC (traffic control) operations:
-
-```bash
-# Clone and build
-cd xo/microbenchmark/libforward-tc
-git submodule update --init --recursive
-
-# Build the library
-make clean
-make
-
-# Verify
-ldd libforward-tc.so
-```
+This library handles TC (traffic control) operations. See xo/microbenchmark/libforward-tc/README.md for setting up.
 
 ### Step 2: Setup eBPF Programs
 
