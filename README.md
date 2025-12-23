@@ -41,10 +41,10 @@ Install the following on **proxy server machine**:
 sudo apt-get update
 
 # Build tools
-sudo apt-get install -y build-essential gcc make pkg-config git
+sudo apt-get install -y build-essential gcc make pkg-config git unzip wget flex bison bc libssl-dev
 
 # eBPF tools
-sudo apt-get install -y bpftool libbpf-dev clang llvm
+sudo apt-get install -y linux-tools-common libbpf-dev clang llvm
 
 # Networking tools
 sudo apt-get install -y iproute2 ethtool
@@ -80,7 +80,7 @@ sudo cp wrk /usr/local/bin/
 # 1. Download kernel source (6.6.0)
 cd /usr/src
 sudo wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.6.tar.xz
-sudo tar -xf linux-6.6.tar.xz
+sudo tar xf linux-6.6.tar.xz
 cd linux-6.6
 
 # 3. Configure kernel

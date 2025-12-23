@@ -11,7 +11,7 @@ This guide helps artifact evaluators reproduce the results from our NSDI paper.
 ---
 
 
-### Step 2: Install libforward-tc
+### Step 1: Install libforward-tc
 
 This library handles TC (traffic control) operations:
 
@@ -28,7 +28,7 @@ make
 ldd libforward-tc.so
 ```
 
-### Step 3: Setup eBPF Programs
+### Step 2: Setup eBPF Programs
 
 The eBPF programs are in the folder `xo/microbenchmark/ebpfprog`. 
 
@@ -52,7 +52,7 @@ ls -la *.o ebpfloader.sh
 
 **Note**: The `runxo.sh` script expects the eBPF programs to be at `~/xo/microbenchmark/ebpfprog`. Make sure this path matches.
 
-### Step 4: Build TCP Repair Server
+### Step 3: Build TCP Repair Server
 
 ```bash
 cd ~/xo/microbenchmark
@@ -74,9 +74,9 @@ ls -la server-ebpf server-hybrid
 - **server-hybrid**: Uses both eBPF and TC for hybrid approach
 ```
 
-### Step 5: Configure Network
+### Step 4: Configure Network
 
-#### 5.1 Find Your Network Interface
+#### 4.1 Find Your Network Interface
 
 ```bash
 # List all network interfaces
@@ -85,7 +85,7 @@ ip link show
 # Note your interface name (e.g., enp8s0f0np0, eth0, ens1f0, etc.)
 ```
 
-#### 5.2 Configure IP Addresses
+#### 4.2 Configure IP Addresses
 
 On each server, assign an IP address:
 
@@ -97,7 +97,7 @@ sudo ip link set dev <YOUR_INTERFACE> up
 # Repeat for each machine with different IPs
 ```
 
-#### 5.3 Create Configuration File
+#### 4.3 Create Configuration File
 
 Edit the `config` file on **all servers** to match your setup:
 
