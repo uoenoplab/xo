@@ -3,10 +3,10 @@
 
 ### Minimum Configuration
 
-- **Server Machines**: Exactly 6 machines required
+- **Server Machines**: 6 machines required
   - 1 client machine (runs wrk)
-  - 1 proxy server (where redirection happen)
-  - 4 backend servers
+  - 1 L7LB machine
+  - 4 backend machines
 - **CPU**: Modern x86_64 processor with multiple cores
 - **RAM**: 16GB+ per server recommended
 - **NIC**:
