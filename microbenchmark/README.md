@@ -23,6 +23,9 @@ sudo apt-get install -y build-essential gcc make cmake pkg-config git unzip wget
 # eBPF tools
 sudo apt-get install -y linux-tools-common libbpf-dev clang llvm
 
+# System libraries
+sudo apt-get install -y libcap-dev libelf-dev
+
 # Networking tools
 sudo apt-get install -y iproute2 ethtool
 
