@@ -11,7 +11,7 @@
 - **RAM**: 16GB+ per server recommended
 - **Network**:
   - **NIC**: One of the following:
-    - **For hardware TC offload**: Mellanox ConnectX-5/6/7, Intel E810, or Netronome Agilio
+    - **For hardware TC offload**: Mellanox ConnectX-5/6/7 or Netronome Agilio (which we used in the paper)
     - **For eBPF-only mode**: Any NIC
   - **Topology**: Direct connection or low-latency switch
   - **Bandwidth**: 25GbE on Backends and 100GbE on proxy or higher recommended
