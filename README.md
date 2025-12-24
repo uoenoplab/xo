@@ -26,7 +26,7 @@
 
 ### Required Packages
 
-Install the following on **proxy server machine**:
+Install the following in all the machines:
 
 ```bash
 # Update package list
