@@ -80,6 +80,7 @@ cd linux-6.6
 # 3. Configure kernel
 sudo cp /boot/config-$(uname -r) .config
 sudo make olddefconfig
+(edit .config to set just "" to SYSTEM_TRUSTED_KEYS and SYSTEM_REVOCATION_KEYS)
 
 # 4. Compile kernel
 sudo make -j$(nproc)
