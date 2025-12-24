@@ -5,7 +5,7 @@ PROG = server-ebpf server-hybrid
 all: $(PROG)
 
 CC=gcc
-CCFLAGS=-g 
+CCFLAGS=-g -w
 #CCFLAGS=-Wall -g 
 
 INCLUDE := -I./libforward-tc/include
