@@ -94,6 +94,7 @@ The eBPF programs are in the folder `xo/microbenchmark/ebpfprog`.
 cd xo/microbenchmark/ebpfprog
 
 # Compile eBPF programs
+sudo apt-get install libc6-dev-i386
 make
 
 # Verify compilation - you should see compiled .o files and ebpfloader.sh
