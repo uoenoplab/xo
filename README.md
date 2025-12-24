@@ -13,7 +13,7 @@
   - **For hardware TC offload**: Mellanox ConnectX-5/6/7 or Netronome Agilio (which we used in the paper)
   - **For eBPF-only mode**: Any NIC
 - **Network**:
-  - All machines should be on the same Layer 2 network
+  - All machines should be on the same layer 2 network
 
 ---
 
