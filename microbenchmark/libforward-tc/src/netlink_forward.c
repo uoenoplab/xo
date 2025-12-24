@@ -456,7 +456,7 @@ int add_pedit(const uint32_t new_src_ip, const uint8_t *new_src_mac, const uint3
 	return 0;
 }
 
-int remove_redirection(const uint32_t src_ip, const uint32_t dst_ip, const uint16_t sport, const uint16_t dport)
+int64_t remove_redirection(const uint32_t src_ip, const uint32_t dst_ip, const uint16_t sport, const uint16_t dport)
 {
 	if (initialized != 1) {
 		fprintf(stderr, "WARNING: libforward-tc: library not initialized\n");
@@ -574,7 +574,7 @@ int remove_redirection(const uint32_t src_ip, const uint32_t dst_ip, const uint1
 
 }
 
-int remove_redirection_str(const char *src_ip_str, const char *dst_ip_str, const uint16_t sport, const uint16_t dport)
+int64_t remove_redirection_str(const char *src_ip_str, const char *dst_ip_str, const uint16_t sport, const uint16_t dport)
 {
 	uint32_t src_ip;
 	uint32_t dst_ip;

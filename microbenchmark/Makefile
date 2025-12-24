@@ -8,8 +8,8 @@ CC=gcc
 CCFLAGS=-g 
 #CCFLAGS=-Wall -g 
 
-INCLUDE := -I/root/Programs/libforward-tc/include
-LDFLAGS := -L/root/Programs/libforward-tc/build -Wl,-rpath=/root/Programs/libforward-tc/build
+INCLUDE := -I./libforward-tc/include
+LDFLAGS := -L./libforward-tc/build -Wl,-rpath=./libforward-tc/build
 LIBS := -lforward-tc -lprotobuf-c -lmnl -lbpf -lrt -lpthread -ltomcrypt -ltommath
 TOPT = -DWITH_TLS -DLTC_PTHREAD -DWITH_KTLS #-DDEBUG
 # ebpf-only

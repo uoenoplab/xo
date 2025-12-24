@@ -3,30 +3,87 @@
 This guide helps artifact evaluators reproduce the results from our NSDI paper.
 
 ## Table of Contents
-[Hardware Requirements](#hardware-requirements)
-[Software Requirements](#software-requirements)
-[Setup Instructions](#setup-instructions)
-[Running Experiments](#running-experiments)
+- [Prerequisites](#prerequisites)
+- [Setup Instructions](#setup-instructions)
+- [Running Experiments](#running-experiments)
 
 ---
 
+## Prerequisites
 
-### Step 1: Install libforward-tc
-
-This library handles TC (traffic control) operations:
+### Required Packages (on all servers)
 
 ```bash
-# Clone and build
-cd xo/microbenchmark/libforward-tc
-git submodule update --init --recursive
+# Update package list
+sudo apt-get update
 
-# Build the library
-make clean
+# Build tools
+sudo apt-get install -y build-essential gcc make cmake pkg-config git unzip wget flex bison bc libssl-dev
+
+# eBPF tools
+sudo apt-get install -y linux-tools-common libbpf-dev clang llvm
+
+# Networking tools
+sudo apt-get install -y iproute2 ethtool
+
+# Protocol buffers
+sudo apt-get install -y libprotobuf-c1 libprotobuf-c-dev protobuf-c-compiler
+
+# TLS libraries
+sudo apt-get install -y libtommath-dev libtomcrypt-dev
+
+# Network libraries
+sudo apt-get install -y libmnl-dev
+```
+
+### Client Machine Setup
+
+On the client machine, install `wrk` HTTP benchmarking tool:
+
+```bash
+git clone https://github.com/wg/wrk.git
+cd wrk
 make
+sudo cp wrk /usr/local/bin/
+```
 
-# Verify
+---
+
+## Setup Instructions
+
+### Step 1: Build libforward-tc
+
+The `libforward-tc` library is included under `microbenchmark/libforward-tc/`. We use CMake to automatically build it along with its dependencies (iproute2 and uthash).
+
+**Building libforward-tc:**
+
+```bash
+cd ~/xo/microbenchmark/libforward-tc
+
+# Build using CMake (automatically downloads and builds dependencies)
+mkdir -p build && cd build
+cmake ..
+make -j$(nproc)
+
+# Verify the library was built successfully
+ls -lh libforward-tc.so
 ldd libforward-tc.so
 ```
+
+**Expected output:**
+- You should see `libforward-tc.so` file (around 250KB)
+- `ldd` should show all dependencies are resolved (libbpf, libcap, libmnl, etc.)
+
+**What CMake does automatically:**
+- Downloads and builds iproute2 (v6.8.0)
+- Downloads uthash headers
+- Compiles the eBPF program (`ebpf_redirect_block.o`)
+- Links all required libraries (libcap, libbpf, libmnl, libelf)
+
+**Troubleshooting:**
+- If `cmake` fails with "CMake not found", install it: `sudo apt-get install -y cmake`
+- If you see "Could NOT find PkgConfig", install: `sudo apt-get install -y pkg-config`
+- If missing libcap/libbpf errors occur, ensure you installed the prerequisites from the previous section
 
 ### Step 2: Setup eBPF Programs
 
@@ -65,14 +122,14 @@ make
 # - server-ebpf: eBPF-only backend
 # - server-hybrid: Hybrid (eBPF + TC) backend
 
-# Verify executables exist
-ls -la server-ebpf server-hybrid
+# Verify executables exist and check dependencies
+ls -lh server-ebpf server-hybrid
+ldd server-ebpf | grep forward
 ```
 
 **Backend types:**
 - **server-ebpf**: Uses only eBPF for packet redirection (works with any NIC)
-- **server-hybrid**: Uses both eBPF and TC for hybrid approach
-```
+- **server-hybrid**: Uses both eBPF and TC for hybrid approach (requires TC-capable NIC)
 
 ### Step 4: Configure Network
 
