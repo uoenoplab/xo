@@ -1,4 +1,8 @@
 # xo
+
+The following instructions are common for all the experiment.
+README.md in microbenchnark, nginx or ceph directory describes experiment-specific instructions.
+
 ## Hardware Requirements
 
 ### Minimum Configuration
