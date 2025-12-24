@@ -24,7 +24,7 @@
 - **Linux Kernel**: 6.6.0
 - **Distribution**: Ubuntu 20.04/22.04
 
-### Required Packages
+### Package Installation
 
 Install the following in all the machines:
 
@@ -64,9 +64,7 @@ sudo cp wrk /usr/local/bin/
 
 ---
 
-## Setup Instructions
-
-### Step 1: Kernel and Installation
+### Kernel Installation
 
 ```bash
 # 1. Download kernel source (6.6.0)
