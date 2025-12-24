@@ -146,7 +146,29 @@ ip link show
 # Note your interface name (e.g., enp8s0f0np0, eth0, ens1f0, etc.)
 ```
 
-#### 4.2 Configure IP Addresses
+#### 4.2 Enable TC Hardware Offload (For server-hybrid only)
+
+**Note**: This step is only required if you're using `server-hybrid`. Skip this if you're only using `server-ebpf`.
+
+TC hardware offload requires a compatible NIC (Mellanox ConnectX-5/6/7, Intel E810, or Netronome Agilio):
+
+```bash
+# Check if your NIC supports TC offload
+ethtool -k <YOUR_INTERFACE> | grep hw-tc-offload
+
+# Enable TC hardware offload
+sudo ethtool -K <YOUR_INTERFACE> hw-tc-offload on
+
+# Verify it's enabled
+ethtool -k <YOUR_INTERFACE> | grep hw-tc-offload
+# Should show: hw-tc-offload: on
+```
+
+**Troubleshooting:**
+- If the command fails with "operation not supported", your NIC doesn't support TC offload
+- In this case, use `server-ebpf` instead, which works with any NIC
+
+#### 4.3 Configure IP Addresses
 
 On each server, assign an IP address:
 
@@ -158,7 +180,7 @@ sudo ip link set dev <YOUR_INTERFACE> up
 # Repeat for each machine with different IPs
 ```
 
-#### 4.3 Create Configuration File
+#### 4.4 Create Configuration File
 
 Edit the `config` file on **all servers** to match your setup:
 
