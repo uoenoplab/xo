@@ -9,19 +9,11 @@
   - 4 backend servers
 - **CPU**: Modern x86_64 processor with multiple cores
 - **RAM**: 16GB+ per server recommended
+- **NIC**:
+  - **For hardware TC offload**: Mellanox ConnectX-5/6/7 or Netronome Agilio (which we used in the paper)
+  - **For eBPF-only mode**: Any NIC
 - **Network**:
-  - **NIC**: One of the following:
-    - **For hardware TC offload**: Mellanox ConnectX-5/6/7 or Netronome Agilio (which we used in the paper)
-    - **For eBPF-only mode**: Any NIC
-  - **Topology**: Direct connection or low-latency switch
-  - **Bandwidth**: 25GbE on Backends and 100GbE on proxy or higher recommended
-
-### Network Setup
-
-All machines should be on the same Layer 2 network:
-- Machines must be able to communicate directly (on the same subnet)
-- You can use any subnet (private like 192.168.x.x or your existing network)
-- Direct connection or single switch recommended for consistent results and low latency
+  - All machines should be on the same Layer 2 network
 
 ---
 
@@ -29,7 +21,7 @@ All machines should be on the same Layer 2 network:
 
 ### Operating System
 
-- **Linux Kernel**: 6.6.0-generic
+- **Linux Kernel**: 6.6.0
 - **Distribution**: Ubuntu 20.04/22.04
 
 ### Required Packages
