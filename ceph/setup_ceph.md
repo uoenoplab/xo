@@ -21,6 +21,7 @@ mkdir -p /usr/share/man/man1
 ### Build and install Ceph
 Ensure the following is in the `do_cmake.sh` script: `ARGS+=" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_MGR_DASHBOARD_FRONTEND=OFF -DWITH_MANPAGE=OFF"`. Run the script, and build Ceph. Install Ceph, and ignore the error regarding missing `BUILD_DOC` when Cython is running.
 ```bash
+sed -i 's/add_subdirectory(dashboard)/#add_subdirectory(dashboard)/g' src/pybind/mgr/CMakeLists.txt
 ./do_cmake.sh
 cd build
 ninja -v
