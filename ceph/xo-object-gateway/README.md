@@ -4,7 +4,7 @@ XO object gateway implements a simple object gateway for a Ceph cluster. XO serv
 ### Dependencies
 XO gateway needs the following dependencies. Install their development files.
 - LibXml2
-- librados2
+- librados2 (which will be built and installed in the next step while compiling Ceph)
 - uriparser
 - OpenSSL
 - PkgConfig
@@ -25,6 +25,30 @@ XO gateway needs the following dependencies. Install their development files.
 - llvm
 - gcc-multilib
 - libz
+
+By running the following:
+```bash
+apt install libxml2-dev liburiparser-dev libssl-dev pkg-config libprotobuf-c-dev protobuf-compiler cmake libmnl-dev elfutils libbpf-dev libelf-dev bison flex clang llvm gcc-multilib libz-dev
+```
+
+Build and install zlog:
+```bash
+wget https://github.com/HardySimpson/zlog/archive/refs/tags/1.2.18.tar.gz
+tar xvzf 1.2.18.tar.gz 
+cd zlog-1.2.18/
+make -j
+make install
+cd ..
+```
+
+Build bpftool which is needed to load the bpf program that comes with libforward-tc.
+```bash
+git clone --recurse-submodules https://github.com/libbpf/bpftool.git
+cd bpftool/src
+make install
+cd ../..
+```
+
 ### Ceph
 Ceph should be built with the following patch when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
 ### Configuration
