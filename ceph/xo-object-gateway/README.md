@@ -28,7 +28,7 @@ XO gateway needs the following dependencies. Install their development files.
 
 By running the following:
 ```bash
-apt install libxml2-dev liburiparser-dev libssl-dev pkg-config libprotobuf-c-dev protobuf-compiler cmake libmnl-dev elfutils libbpf-dev libelf-dev bison flex clang llvm gcc-multilib libz-dev
+apt install libxml2-dev libssl-dev pkg-config libinih-dev libprotobuf-c-dev protobuf-compiler cmake libmnl-dev elfutils libbpf-dev libelf-dev bison flex clang llvm gcc-multilib libz-dev
 ```
 
 Build and install zlog:
@@ -41,12 +41,32 @@ make install
 cd ..
 ```
 
+Build and install liburiparser:
+```bash
+wget https://github.com/uriparser/uriparser/releases/download/uriparser-0.9.7/uriparser-0.9.7.tar.gz
+tar -xvzf uriparser-0.9.7.tar.gz 
+cd uriparser-0.9.7
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DURIPARSER_BUILD_TESTS=OFF -DURIPARSER_BUILD_DOCS=OFF ..
+make -j 
+make install
+cd ../..
+```
+
 Build bpftool which is needed to load the bpf program that comes with libforward-tc.
 ```bash
 git clone --recurse-submodules https://github.com/libbpf/bpftool.git
 cd bpftool/src
 make install
 cd ../..
+```
+
+Ensure `libforward-tc` is not present on the system paths (e.g. if copied to `/usr/local` when running NGINX):
+```bash
+rm /usr/local/lib/libforward-tc.so 
+rm /usr/local/include/ebpf_forward.h 
+rm /usr/local/include/forward.h 
 ```
 
 ### Ceph
