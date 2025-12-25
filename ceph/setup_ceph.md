@@ -272,7 +272,7 @@ Save the following from the on-screen output:
 ```
 "keys": [ { "user": "admin-api-user", "access_key": "...", "secret_key": "..." }
 ```
-Put them in a S3 credential file.
+Put them in a S3 credential file. This file is needed on the client host, but place it on every hosts for convenience.
 ```bash
 mkdir ~/.aws
 vim ~/.aws/credentials
