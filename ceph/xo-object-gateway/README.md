@@ -2,9 +2,9 @@
 XO object gateway implements a simple object gateway for a Ceph cluster. XO server is executed on every OSD host and on a dedicated frontend server. The frontend server acts like a normal object gateway when migration is not used. When migration is used, it offloads TCP connections to OSD hosts that is serving the requested object, rather than performing a remote object fetch through RADOS.
 ## Building
 ### Dependencies
-XO gateway needs the following dependencies. Install their development files.
+XO gateway needs the following dependencies.
 - LibXml2
-- librados2 (which will be built and installed in the next step while compiling Ceph)
+- librados2 (which should have been built and installed in the previous step while compiling Ceph)
 - uriparser
 - OpenSSL
 - PkgConfig
@@ -26,7 +26,7 @@ XO gateway needs the following dependencies. Install their development files.
 - gcc-multilib
 - libz
 
-By running the following:
+Install them and their development files by running the following:
 ```bash
 apt install libxml2-dev libssl-dev pkg-config libinih-dev libprotobuf-c-dev protobuf-compiler cmake libmnl-dev elfutils libbpf-dev libelf-dev bison flex clang llvm gcc-multilib libz-dev
 ```
@@ -64,29 +64,30 @@ cd ../..
 
 Ensure `libforward-tc` is not present on the system paths (e.g. if copied to `/usr/local` when running NGINX):
 ```bash
-rm /usr/local/lib/libforward-tc.so 
-rm /usr/local/include/ebpf_forward.h 
-rm /usr/local/include/forward.h 
+rm -f /usr/local/lib/libforward-tc.so 
+rm -f /usr/local/include/ebpf_forward.h 
+rm -f /usr/local/include/forward.h 
 ```
 
 ### Ceph
-Ceph should be built with the following patch when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
+Ceph should have already been built with the following patch when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
 ### Configuration
 Enter the folder and configure with CMake.
 ```bash
-$ cd xo-object-gateway
-$ mkdir build
-$ cmake -DUSE_MIGRATION=ON ..
-$ make -j `nproc`
+cd xo-object-gateway
+mkdir build
+cd build
+cmake -DUSE_MIGRATION=ON ..
+make -j `nproc`
 ```
 The option `-DUSE_MIGRATION=ON` enables XO. Otherwise, it is built as a normal object gateway similar to Ceph RGW. The build script automatically fetches `libforward-tc` and dependencies and builds it.
 ## Running
 ### NIC Configuration
-Edit the `IFNAME` (replace `ens1f0np0`) in `ebpf_redirect_block_load.sh` that is generated in the build folder with the network interface. The script sets up the qdiscs and eBPF program that is used as a classifier. Run the script as follows.
+Edit the `IFNAME` (replace `ens1f0np0`) in `ebpf_redirect_block_load.sh` that is generated in the build folder with the network interface used. The script sets up the qdiscs and eBPF program that is used as a classifier. Run the script as follows.
 ```bash ebpf_redirect_block_load.sh
 # ./ebpf_redirect_block_load.sh 
 + IFNAME=ens1f0np0
-+ '[' 0 -eq 2 ']'
++ '[' 0 -eq 1 ']'
 + NAME=ebpf_redirect_block
 + BPFPATH=/sys/fs/bpf/ebpf_redirect_block
 + BPFPROG=../build/ebpf_redirect_block.o
@@ -102,7 +103,7 @@ Error: Cannot find specified qdisc on specified device.
 #
 ```
 ### Configuration Files
-XO uses `ceph.conf` to read the address and OSD ID information to determine backend servers. Ensure it is placed in `/etc/ceph/ceph.conf` and provides all the OSD information. For example:
+XO uses `ceph.conf` to read the address and OSD ID information to determine backend servers. It should have been setup already while installing Ceph. Ensure it is placed in `/etc/ceph/ceph.conf` and provides all the OSD information. For example:
 ```ini
 [osd.0]
 host = n08
@@ -124,7 +125,10 @@ host = n12
 public_addr = 192.168.11.100
 cluster_addr = 192.168.11.100
 ```
-Place `zlog.conf` in `/etc/zlog.conf` for message logging.
+Copy `zlog.conf` to `/etc/` for message logging.
+```bash
+cp ../zlog.conf /etc/
+```
 ### Running XO server
 Run the server using the `server.out` binary. It takes the following options:
 ```bash
