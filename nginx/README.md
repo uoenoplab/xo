@@ -45,14 +45,7 @@ mkdir -p /tmp/cores
 ./objs/nginx -c `pwd`/conf/xo.conf
 ```
 
-7. On the client machine, setup wrk.
-```bash
-git clone https://github.com/wg/wrk.git
-cd wrk
-make -j 16
-```
-
-8. On the client host, run wrk against the frontend server (replace `http://192.168.11.51:80` to you frontend server's address), specifying return object size as request (i.e. `/(size in byte)`), for example, to request 2MiB objects using 100 connections and 28 threads for 5 seconds:
+7. On the client host, run wrk against the frontend server (replace `http://192.168.11.51:80` to you frontend server's address), specifying return object size as request (i.e. `/(size in byte)`), for example, to request 2MiB objects using 100 connections and 28 threads for 5 seconds:
 ```bash
 ./wrk -c 100 -t 28 -d 5s http://192.168.11.51:80/$((2*1024*1024))
 ```
