@@ -72,9 +72,8 @@ rm -f /usr/local/include/forward.h
 [Ceph](../) should have **already been built with the following patch** when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
 
 ## Build
-Enter the folder and configure with CMake.
+Make sure you are under the current folder (`xo/ceph/xo-object-gateway`), build xo-object-gateway with Cmake:
 ```bash
-cd xo-object-gateway
 mkdir build
 cd build
 cmake -DUSE_MIGRATION=ON ..
