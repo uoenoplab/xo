@@ -4,7 +4,7 @@
 #IFNAME=enp23s0f0np0
 IFNAME=enp8s0f0np0
 
-if [ $# -eq 2 ]; then
+if [ $# -eq 1 ]; then
 	IFNAME="$1"
 fi
 
