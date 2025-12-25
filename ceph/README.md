@@ -1,7 +1,7 @@
 ## Ceph
-1. Clone Ceph, build, and install it after applying `ceph_xo.patch`. Refer to `setup_ceph.md` for detailed instructions.
+1. *This step must be done first*. Clone Ceph, build, and install it after applying `ceph_xo.patch` by referring to `setup_ceph.md`.
 
-2. If you have copied `libforward-tc.so` into `/usr/local/lib` for NGINX, remove it. Otherwise proceed to and build XO object gateway.
+2. Proceed to and build XO object gateway.
 ```bash
 cd xo-object-gateway
 ```
