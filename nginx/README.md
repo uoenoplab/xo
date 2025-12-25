@@ -19,11 +19,12 @@ We assume four backend hosts, one front end host, and one client host. All hosts
 - llvm
 - gcc-multilib
 - libz
+
 By running the following:
 ´´´bash
 apt install libpcre3-dev liburiparser-dev libssl-dev pkg-config libprotobuf-c-dev protobuf-compiler cmake libmnl-dev elfutils libbpf-dev libelf-dev bison flex clang llvm gcc-multilib libz-dev
 ´´´
-Build bpftool which is needed to load the bpf program.
+Build bpftool which is needed to load the bpf program that comes with libforward-tc.
 ```bash
 git clone --recurse-submodules https://github.com/libbpf/bpftool.git
 cd bpftool/src
