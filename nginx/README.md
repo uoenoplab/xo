@@ -2,16 +2,13 @@
 We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed. The NGINX code is based on nginx-1.27.3-RELEASE.
 
 1. Install all of the following libraries and development files:
-- LibXml2
-- librados2
+- PCRE3
 - uriparser
 - OpenSSL
 - PkgConfig
-- inih
 - libprotobuf-c
 - proto-c
 - CMake
-- libzlog
 - libmnl-dev
 - elfutils
 - libelf-dev
@@ -22,6 +19,16 @@ We assume four backend hosts, one front end host, and one client host. All hosts
 - llvm
 - gcc-multilib
 - libz
+By running the following:
+´´´bash
+apt install libpcre3-dev liburiparser-dev libssl-dev pkg-config libprotobuf-c-dev protobuf-compiler cmake libmnl-dev elfutils libbpf-dev libelf-dev bison flex clang llvm gcc-multilib libz-dev
+´´´
+Build bpftool which is needed to load the bpf program.
+```bash
+git clone --recurse-submodules https://github.com/libbpf/bpftool.git
+cd bpftool/src
+make
+```
 
 2. Setup libforward-tc.
 ```bash
@@ -43,6 +50,9 @@ cp libforward-tc.so /usr/local/lib
 cd ../../nginx
 ./auto/configure --add-module=./modules/ngx_http_handoff_module
 make -j 16
+...
+mkdir -p /usr/local/nginx/logs/
+mkdir -p /tmp/cores
 ```
 
 4. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`.
