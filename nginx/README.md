@@ -2,24 +2,6 @@
 We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed. The NGINX code is based on nginx-1.27.3-RELEASE.
 
 1. Install all of the following libraries and development files:
-- PCRE3
-- OpenSSL
-- PkgConfig
-- libprotobuf-c
-- proto-c
-- CMake
-- libmnl-dev
-- elfutils
-- libelf-dev
-- libbpf
-- bison
-- flex
-- clang
-- llvm
-- gcc-multilib
-- libz
-
-By running the following:
 ```bash
 apt install libpcre3-dev elfutils libelf-dev gcc-multilib libz-dev
 ```
