@@ -3,7 +3,7 @@ We assume four backend hosts, one front end host, and one client host. All hosts
 
 1. Install all of the following libraries and development files:
 ```bash
-apt install libpcre3-dev elfutils libelf-dev gcc-multilib libz-dev
+apt install libpcre3-dev elfutils libelf-dev libz-dev
 ```
 Build bpftool which is needed to load the bpf program that comes with libforward-tc.
 ```bash
