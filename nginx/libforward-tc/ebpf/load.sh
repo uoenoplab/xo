@@ -2,7 +2,7 @@
 
 IFNAME=ens1f0np0
 
-if [ $# -eq 2 ]; then
+if [ $# -eq 1 ]; then
 	IFNAME="$1"
 fi
 
