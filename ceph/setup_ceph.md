@@ -14,7 +14,7 @@ Clone the ceph source code, use the latest v17.2.6 (Quincy), apply `ceph_xo.patc
 git clone https://github.com/ceph/ceph
 cd ceph
 git checkout v17.2.6
-git apply ceph_xo.patch
+git apply ../ceph_xo.patch
 mkdir -p /usr/share/man/man1
 ./install-deps.sh
 ```
