@@ -1,5 +1,5 @@
 ## Ceph
-1. *This step must be done first*. Clone Ceph, build, and install it after applying `ceph_xo.patch` by referring to `setup_ceph.md`.
+1. **This step must be done first**. Clone Ceph, build, and install it after applying `ceph_xo.patch` by referring to `setup_ceph.md`.
 
 2. Proceed to and build XO object gateway.
 ```bash
