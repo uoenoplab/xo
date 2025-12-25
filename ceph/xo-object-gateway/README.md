@@ -1,7 +1,6 @@
 # XO Object Gateway
 XO object gateway implements a simple object gateway for a Ceph cluster. XO server is executed on every OSD host and on a dedicated frontend server. The frontend server acts like a normal object gateway when migration is not used. When migration is used, it offloads TCP connections to OSD hosts that is serving the requested object, rather than performing a remote object fetch through RADOS.
-## Building
-### Dependencies
+## Dependencies
 XO gateway needs the following dependencies.
 - LibXml2
 - librados2 (which should have been built and installed in the previous step while compiling Ceph)
@@ -25,6 +24,7 @@ XO gateway needs the following dependencies.
 - llvm
 - gcc-multilib
 - libz
+- [Ceph](#ceph)
 
 Install them and their development files by running the following:
 ```bash
@@ -68,10 +68,10 @@ rm -f /usr/local/lib/libforward-tc.so
 rm -f /usr/local/include/ebpf_forward.h 
 rm -f /usr/local/include/forward.h 
 ```
-
 ### Ceph
-Ceph should have already been built with the following patch when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
-### Configuration
+[Ceph](../) should have **already been built with the following patch** when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
+
+## Build
 Enter the folder and configure with CMake.
 ```bash
 cd xo-object-gateway
