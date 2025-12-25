@@ -27,15 +27,12 @@ Build bpftool which is needed to load the bpf program that comes with libforward
 ```bash
 git clone --recurse-submodules https://github.com/libbpf/bpftool.git
 cd bpftool/src
-make install
+make -j install
 cd ../..
 ```
 
 2. Setup libforward-tc.
 ```bash
-mkdir xo_nginx
-cd xo_nginx
-cp -r ../libforward-tc .
 cd libforward-tc
 mkdir build
 cd build
@@ -44,7 +41,7 @@ cmake .. && make -j 16
 cp ../include/forward.h /usr/local/include/
 cp ../include/ebpf_forward.h /usr/local/include/
 cp libforward-tc.so /usr/local/lib
-cd ../../../
+cd ../../
 ```
 
 3. Build NGINX
