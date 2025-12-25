@@ -1,4 +1,5 @@
-#include <numa.h>
+//#include <numa.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <time.h>
 #include <string.h>
