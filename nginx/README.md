@@ -25,6 +25,13 @@ cp ../include/ebpf_forward.h /usr/local/include/
 cp libforward-tc.so /usr/local/lib
 cd ../../
 ```
+To ensure the local library folder is in the search path, edit `/etc/ld.so.conf`. Append the line `/usr/local/lib` to the file, and it should look like this e.g.,:
+```
+include /etc/ld.so.conf.d/*.conf
+/usr/local/lib
+
+```
+Save, and run `ldconfig` to reload the environment.
 
 3. Build NGINX
 ```bash
