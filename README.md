@@ -37,7 +37,7 @@ Install the following in all the machines:
 sudo apt-get update
 
 # Build tools
-sudo apt-get install -y build-essential gcc-multilib make pkg-config git unzip wget flex bison bc libssl-dev cmake libcap2 libcap-dev rsync
+sudo apt-get install -y build-essential gcc-multilib pkg-config git unzip wget flex bison bc libssl-dev cmake libcap2 libcap-dev rsync
 
 # eBPF tools
 sudo apt-get install -y linux-tools-common libbpf-dev clang llvm
