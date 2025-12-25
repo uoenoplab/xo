@@ -103,7 +103,7 @@ Error: Cannot find specified qdisc on specified device.
 #
 ```
 ### Configuration Files
-XO uses `ceph.conf` to read the address and OSD ID information to determine backend servers. It should have been setup already while installing Ceph. Ensure it is placed in `/etc/ceph/ceph.conf` and provides all the OSD information. For example:
+XO uses `ceph.conf` to read the address and OSD ID information to determine backend servers. It should have been setup already while installing Ceph. Ensure it is placed in `/etc/ceph/ceph.conf` and provides all the OSD information. For example, the following sections are used by XO to find backend storage servers and their IDs:
 ```ini
 [osd.0]
 host = n08
@@ -119,11 +119,6 @@ cluster_addr = 192.168.11.110
 host = n11
 public_addr = 192.168.11.70
 cluster_addr = 192.168.11.70
-
-[osd.3]
-host = n12
-public_addr = 192.168.11.100
-cluster_addr = 192.168.11.100
 ```
 Copy `zlog.conf` to `/etc/` for message logging.
 ```bash
