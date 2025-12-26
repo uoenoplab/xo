@@ -71,6 +71,13 @@ rm -f /usr/local/include/forward.h
 ### Ceph
 [Ceph](../) should have **already been built with the following patch** when building Ceph to enable a special getter function in `librados` for retrieving object location: `xo/ceph/ceph_xo.patch`.
 
+Create two RADOS pools (`bucket_pool` and `data_pool`) which will be used by XO object gateway. Run the following on any OSD hosts:
+```bash
+ceph osd pool create bucket_pool --bulk
+ceph osd pool create data_pool --bulk
+```
+Ceph performs auto scaling on the pools (e.g., placement group numbers) but they can be tuned. Refer to [Ceph's official documentation](https://docs.ceph.com/en/latest/rados/operations/placement-groups/).
+
 ## Build
 Make sure you are under the current folder (`xo/ceph/xo-object-gateway`), build xo-object-gateway with Cmake:
 ```bash
