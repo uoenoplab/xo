@@ -2099,6 +2099,9 @@ int main(int argc, char **argv)
         ast(bind(data_so, (struct sockaddr *)&addr, sizeof(addr)) == 0, "data bind", NULL);
         ast(listen(data_so, 5) == 0, "data listen", NULL);
 
+        printf("Server listening on port 50000...\n");
+        printf("Ready for connections.\n");
+
 #ifdef WITH_TLS
         tls_init();
 #endif /* WITH_TLS */

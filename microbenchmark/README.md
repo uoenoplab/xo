@@ -191,7 +191,6 @@ Replace these with your actual machine IDs from the config file.
 The server should print:
 ```
 Server listening on port 50000...
-Worker threads started: 8
 Ready for connections.
 ```
 
