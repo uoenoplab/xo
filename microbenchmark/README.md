@@ -130,7 +130,7 @@ Edit the `config` file on **all servers** to match your setup:
 
 ```bash
 cd ~/xo/microbenchmark
-# The config file format see in `config_example`:
+# The config file example format see in `config`:
 vim config
 ```
 
