@@ -2023,7 +2023,7 @@ int main(int argc, char **argv)
         {
                 while (fgets(line, 50, fpointer) != NULL)
                 {// scan every line in the config file
-                        if (line[0] == '#') // next line if it is comment
+                        if (line[0] == '#' || line[0] == '\n' || line[0] == '\r') // skip comments and blank lines
                                 continue;
                         ast(sscanf(line, "%s %s %s", s1, s2, s3) == 3, "sscanf", NULL);
                         if (strcmp(s1, "tc") == 0)

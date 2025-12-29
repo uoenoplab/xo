@@ -41,11 +41,11 @@ tc qdisc del dev "$IFNAME" ingress
 tc qdisc add dev "$IFNAME" root handle 1: prio
 
 # Load EBPF program
-cd ~/xo/xo-server/ebpfprog
+cd ~/xo/microbenchmark/ebpfprog
 ./"$EBPFLOADER" "$IFNAME"
 
 # Move back to the server directory
-cd ~/xo-server
+cd ~/xo/microbenchmark
 
 # Start the server with the specified parameters
 ./"$SERVER_EXE" "$IFNAME" ingress 1: $MACHINE_IDS --migration_frequency "$MIGRATION_FREQUENCY" --content_size "$CONTENT_SIZE"
