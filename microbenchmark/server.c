@@ -2015,13 +2015,13 @@ int main(int argc, char **argv)
         }
 
         /* setting up machine info*/
-        char line[50], s1[10], s2[20], s3[20];
+        char line[256], s1[10], s2[20], s3[20];
         FILE *fpointer;
         fpointer = fopen("config", "r");
         ast(fpointer > 0, "fopen", NULL);
         if (fpointer)
         {
-                while (fgets(line, 50, fpointer) != NULL)
+                while (fgets(line, 256, fpointer) != NULL)
                 {// scan every line in the config file
                         if (line[0] == '#' || line[0] == '\n' || line[0] == '\r') // skip comments and blank lines
                                 continue;
