@@ -1,12 +1,13 @@
 # TCP Repair Server Configuration File
 #
 # This file contains network configuration for all machines in the cluster.
-# Copy this file to 'config' and update with your actual values.
 #
-# Format:
+# Format (all lines must have exactly 3 fields for consistent parsing):
+#
 # Line 1: tc <hw|sw> null
 #   - hw: Use hardware TC offload (requires supported NIC)
 #   - sw: Use software TC
+#   - null: Placeholder for 3 fields consistency (do not change this)
 #
 # Following lines: machine_id ip_address mac_address
 #   - machine_id: Unique numeric identifier for each machine
