@@ -1882,7 +1882,7 @@ startover:
                                                         key.dst_ip = inet_addr(client_ip);
                                                         key.src_port = htons(50000);
                                                         key.dst_port = new_migration_info->peer_port;
-                                                        ast(bpf_map_delete_elem(egress_map, &key) == 0, "error bpf_map_delete_elem src ip modification", NULL);
+                                                        ast(bpf_map_delete_elem(egress_map, &key) == 0, "error bpf_map_delete_elem src ip modification 1", NULL);
 #ifdef PROFILE
                                                         clock_gettime(CLOCK_MONOTONIC, &end_time);
                                                         printf("remove src ip modification fake -> client tc: %.9lf\n", diff_timespec(&end_time, &start_time));
@@ -1896,7 +1896,7 @@ startover:
                                                         key.dst_ip = inet_addr(client_ip);
                                                         key.src_port = htons(50000);
                                                         key.dst_port = new_migration_info->peer_port;
-                                                        ast(bpf_map_delete_elem(egress_map, &key) == 0, "error bpf_map_delete_elem src ip modification", NULL);
+                                                        ast(bpf_map_delete_elem(egress_map, &key) == 0, "error bpf_map_delete_elem src ip modification 2", NULL);
                                                         printf("fake receive END due to TCP_CLOSE fd, removing src ip modification rule: not existed\n");
                                                         // else
                                                         //         printf("fake receive END due to TCP_CLOSE fd, removing src ip modification rule: not existed\n");
