@@ -4,15 +4,15 @@
 #
 # Format (all lines must have exactly 3 fields for consistent parsing):
 #
-# Line 1: tc <hw|sw> null
+# Line 1: tc <hw|sw> null (only taking effect with server-hybrid)
 #   - hw: Use hardware TC offload (requires supported NIC)
 #   - sw: Use software TC
 #   - null: Placeholder for 3 fields consistency (do not change this)
 #
 # Following lines: machine_id ip_address mac_address
-#   - machine_id: Unique numeric identifier for each machine
-#   - ip_address: IPv4 address of the machine
-#   - mac_address: MAC address of the network interface
+#   - machine_id: Fixed IDs (0-5), DO NOT change
+#   - ip_address: Update with your machine's actual IP address
+#   - mac_address: Update with your machine's actual MAC address
 #
 
 # TC Configuration: hw for hardware offload, sw for software
@@ -20,18 +20,19 @@ tc hw null
 
 # Machine Configuration
 # Format: ID IP_ADDRESS MAC_ADDRESS
+# Fixed IDs: 0=client, 1=proxy, 2-5=backends
 
 # Client machine (runs wrk)
-14 192.168.1.10 aa:bb:cc:dd:ee:01
+0 192.168.1.10 aa:bb:cc:dd:ee:00
 
-# Proxy server (1 machine)
-35 192.168.1.35 aa:bb:cc:dd:ee:35
+# Proxy server (L7LB)
+1 192.168.1.11 aa:bb:cc:dd:ee:01
 
 # Backend servers (4 machines required)
-30 192.168.1.30 aa:bb:cc:dd:ee:30
-31 192.168.1.31 aa:bb:cc:dd:ee:31
-33 192.168.1.33 aa:bb:cc:dd:ee:33
-34 192.168.1.34 aa:bb:cc:dd:ee:34
+2 192.168.1.12 aa:bb:cc:dd:ee:02
+3 192.168.1.13 aa:bb:cc:dd:ee:03
+4 192.168.1.14 aa:bb:cc:dd:ee:04
+5 192.168.1.15 aa:bb:cc:dd:ee:05
 
 # How to find your MAC address:
 # Run: ip link show <interface_name>

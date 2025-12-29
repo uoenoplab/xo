@@ -165,11 +165,10 @@ ip link show <YOUR_INTERFACE>
 - `<BACKEND1-4>`: Four backend server IDs
 
 
-**Run runxo.sh on 1 proxy and 4 backend machines** 
-(e.g.,proxy_id:35, backends_ids: 30 31 33 34):
+**Run runxo.sh on 1 proxy and 4 backend machines:**
 ```bash
 cd ~/xo/microbenchmark
-sudo ./runxo.sh <YOUR_INTERFACE> 20 4096 server-ebpf 14 35 30 31 33 34
+sudo ./runxo.sh <YOUR_INTERFACE> 20 4096 server-ebpf 0 1 2 3 4 5
 ```
 
 **Command parameters:**
@@ -179,14 +178,10 @@ sudo ./runxo.sh <YOUR_INTERFACE> 20 4096 server-ebpf 14 35 30 31 33 34
   - `n` (e.g., 1, 20, 40): Migrate connection back to proxy and reassign to a new backend every n requests
 - `4096`: Content/object size in bytes (4KB)
 - `server-ebpf`: Server executable to run (server-ebpf or server-hybrid)
-- `14 35 30 31 33 34`: Machine IDs (1 client + 1 proxy + 4 backends)
-  - `14` = client machine
-  - `35` = proxy server
-  - `30 31 33 34` = four backend servers
-
-**Important**: You must provide exactly 6 machine IDs in this order.
-
-Replace these with your actual machine IDs from the config file.
+- `0 1 2 3 4 5`: Fixed machine IDs (DO NOT change these)
+  - `0` = client machine
+  - `1` = proxy server
+  - `2 3 4 5` = four backend servers
 
 The server should print:
 ```
@@ -196,7 +191,7 @@ Ready for connections.
 
 To stop the server, press `Ctrl+C`.
 
-**On client machine** (machine 14):
+**On client machine** (machine ID 0):
 ```bash
 # Test with 20 thread, 100 connection, 30 seconds, with your proxy's ip address (192.168.1.1)
 wrk -t 20 -c 100 -d 30 https://192.168.1.1:50000

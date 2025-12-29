@@ -11,10 +11,10 @@ MACHINE_IDS="$@"  # Remaining arguments are machine IDs
 if [[ -z "$IFNAME" || -z "$MIGRATION_FREQUENCY" || -z "$CONTENT_SIZE" || -z "$SERVER_EXE" ]]; then
 	echo "Error: Missing required arguments."
 	echo "Usage: $0 <IFNAME> <MIGRATION_FREQUENCY> <CONTENT_SIZE> <SERVER_EXE> <CLIENT_ID> <PROXY_ID> <BACKEND1> <BACKEND2> <BACKEND3> <BACKEND4>"
-	echo "Example: $0 enp8s0f0np0 20 4096 server-ebpf 14 35 30 31 33 34"
-	echo "  14 = client machine"
-	echo "  35 = proxy server"
-	echo "  30 31 33 34 = four backend servers"
+	echo "Example: $0 enp8s0f0np0 20 4096 server-ebpf 0 1 2 3 4 5"
+	echo "  0 = client machine"
+	echo "  1 = proxy server"
+	echo "  2 3 4 5 = four backend servers"
 	exit 1
 fi
 
@@ -24,10 +24,10 @@ if [[ ${#MACHINE_ID_ARRAY[@]} -ne 6 ]]; then
 	echo "Error: Exactly 6 machine IDs required (1 client + 1 proxy + 4 backends)."
 	echo "You provided: ${#MACHINE_ID_ARRAY[@]} machine IDs"
 	echo "Usage: $0 <IFNAME> <MIGRATION_FREQUENCY> <CONTENT_SIZE> <SERVER_EXE> <CLIENT_ID> <PROXY_ID> <BACKEND1> <BACKEND2> <BACKEND3> <BACKEND4>"
-	echo "Example: $0 enp8s0f0np0 20 4096 server-ebpf 14 35 30 31 33 34"
-	echo "  14 = client machine"
-	echo "  35 = proxy server"
-	echo "  30 31 33 34 = four backend servers"
+	echo "Example: $0 enp8s0f0np0 20 4096 server-ebpf 0 1 2 3 4 5"
+	echo "  0 = client machine"
+	echo "  1 = proxy server"
+	echo "  2 3 4 5 = four backend servers"
 	exit 1
 fi
 
