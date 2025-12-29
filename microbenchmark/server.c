@@ -1370,7 +1370,7 @@ startover:
                                 }
                                 if (len == 0)
                                 {
-                                        printf("control message read() len == 0\n");
+                                        //printf("control message read() len == 0\n");
                                         close_fd_cleanup(fd, epfd);
                                         continue;
                                 }

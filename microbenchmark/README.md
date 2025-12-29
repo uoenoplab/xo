@@ -194,6 +194,8 @@ Server listening on port 50000...
 Ready for connections.
 ```
 
+To stop the server, press `Ctrl+C`.
+
 **On client machine** (machine 14):
 ```bash
 # Test with 20 thread, 100 connection, 30 seconds, with your proxy's ip address (192.168.1.1)
