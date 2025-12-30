@@ -1,3 +1,7 @@
+## Microbenchmark
+
+This section describes how to reproduce throughput and latency results in Figure 7 in the paper. Just run `top` to see CPU utilization while executing the server cluster.
+
 ### Step 1: Build libforward-tc
 
 The `libforward-tc` library is included under `microbenchmark/libforward-tc/`. We use CMake to automatically build it along with its dependencies (iproute2 and uthash).
@@ -209,5 +213,6 @@ Requests/sec:  XXXXX.XX
 Transfer/sec:     XX.XXMB
 ```
 
-**Experiments on different parameters**
-Change executable servers, migration frequency, content size to reproduce the throughput results shown in paper figuer 7.
+**Reproducing expriments in the paper**
+
+Change executable servers (server-ebpf or server-hybrid), migration frequency, content size when executing runxo.sh to reproduce the throughput results shown in Figure 7.
