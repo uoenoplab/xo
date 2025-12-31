@@ -43,11 +43,11 @@ mkdir -p /usr/local/nginx/logs/
 mkdir -p /tmp/cores
 ```
 
-4. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`.
+4. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`. Change `handoff_ifname` of the interface name of the host you are running on.
 
-5. On every server machines, setup the eBPF programs and tc by running `./reset.sh`. Change the inerface name (`IFNAME`) in the script.
+5. On every server machines, setup the eBPF programs and tc by running `./reset.sh (IFNAME)`. Change the inerface name (`IFNAME`) in the argument, to the actual name of the interface where you are running the script. This must be the same interafce you used in step 4.
 
-6. Run the code on every server, including frontend and backends.
+6. Run the code on every server, including frontend and backends:
 ```bash
 ./objs/nginx -c `pwd`/conf/xo.conf
 ```
