@@ -2,7 +2,10 @@
 
 The following instructions are common for all the experiment.
 README.md in microbenchnark, nginx or ceph directory describes experiment-specific instructions.
-
+- Figure 7: see [microbenchmark](microbenchmark)
+- Figure 9: see [nginx](nginx)
+- Figure 11: see [ceph](ceph)
+  
 ## Hardware Requirements
 
 ### Minimum Configuration
