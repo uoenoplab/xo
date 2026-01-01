@@ -1,5 +1,5 @@
 ## NGINX
-We assume four backend hosts, one front end host, and one client host. All hosts should have the exact environment, configuration, and software installed. The NGINX code is based on nginx-1.27.3-RELEASE.
+We assume four backend hosts, one frontend host, and one client host (6 in total). All hosts should have the exact environment, configuration, and software installed. The NGINX code is based on nginx-1.27.3-RELEASE.
 
 1. Install all of the following libraries and development files:
 ```bash
@@ -43,11 +43,19 @@ mkdir -p /usr/local/nginx/logs/
 mkdir -p /tmp/cores
 ```
 
-4. Configure the handoff targets, edit `conf/xo.conf`, put the IP address of the backend servers as `handoff_target`. Change `handoff_ifname` of the interface name of the host you are running on. This means that, xo.conf should have the same `handoff_target` variables across all the frontend and backdnds, but can have a different `handoff_ifname` variable between them.
+4. Edit `conf/xo.conf`. List the IP address of all the backend servers as `handoff_target`, including its own one. Change `handoff_ifname` of the interface name of the host you are running on. This means that, xo.conf should have the same `handoff_target` variables across all the frontend and backdnds, but can have a different `handoff_ifname` variable between them. See example below:
+```...
+    handoff_ifname enp8s0f0np0; # this part may vary between the hosts
+    handoff_freq 0; # 0 = round robin
+    handoff_target 192.168.11.131 79; # this part and below should be the same across the hosts
+    handoff_target 192.168.11.147 79;
+    handoff_target 192.168.11.129 79;
+    handoff_target 192.168.11.139 79;
+    ...
+```
+6. On every server machines (in any order), setup the eBPF programs and tc by running `./reset.sh (IFNAME)`. Change the inerface name (`IFNAME`) in the argument, to the actual name of the interface where you are running the script. This must be the same interafce you used in step 4.
 
-5. On every server machines (in any order), setup the eBPF programs and tc by running `./reset.sh (IFNAME)`. Change the inerface name (`IFNAME`) in the argument, to the actual name of the interface where you are running the script. This must be the same interafce you used in step 4.
-
-6. Run the code on every server, including frontend and backends (in any order):
+7. Run the code on every server, including frontend and backends (in any order):
 ```bash
 ./objs/nginx -c `pwd`/conf/xo.conf
 ```
