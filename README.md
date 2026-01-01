@@ -1,7 +1,7 @@
 # xo
 
-The following instructions are common for all the experiment.
-README.md in microbenchnark, nginx or ceph directory describes experiment-specific instructions.
+This repository describes how to reproduce key results in the paper "Remote TCP Connection Offload and Applications" in NSDI'26.
+Instruction in this page are common for all the experiment, and README.md in the following subdirectories describes experiment-specific instructions.
 - Figure 7: see [microbenchmark](microbenchmark)
 - Figure 9: see [nginx](nginx)
 - Figure 11: see [ceph](ceph)
