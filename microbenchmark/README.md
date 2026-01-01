@@ -215,4 +215,4 @@ Transfer/sec:     XX.XXMB
 
 **Reproducing expriments in the paper**
 
-Change executable servers (server-ebpf or server-hybrid), migration frequency, content size when executing runxo.sh to reproduce the throughput results shown in Figure 7.
+Change executable servers (server-ebpf or server-hybrid), migration frequency, content size when executing runxo.sh to reproduce the throughput datapoints in Figure 7.
