@@ -60,6 +60,12 @@ mkdir -p /tmp/cores
 ./objs/nginx -c `pwd`/conf/xo.conf
 ```
 
+To also monitor CPU and network usage of a host, run the `dool` tool in a seperate terminal, replace `filename` with the actual name you want; and `eno1` with the `handoff_ifname` value:
+```bash
+dool -T --cpu -C total --output (filename).csv --noupdate
+```
+The output CSV file can be imported into any spreadsheet applications. The CPU usage is `100-idl` where `idl` is column showing idle percentage. The `epoch` column shows the timestamp.
+
 7. On the client host, run wrk against the frontend server (replace `http://192.168.11.51:80` to you frontend server's address), specifying return object size as request (i.e. `/(size in byte)`), for example, to request 2MiB objects (i.e., 2nd last datapoint in Figure 9) using 100 connections and 28 threads for 5 seconds:
 ```bash
 ./wrk -c 100 -t 28 -d 5s http://192.168.11.51:80/$((2*1024*1024))
