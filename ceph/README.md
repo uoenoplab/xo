@@ -58,7 +58,7 @@ You can use the `dool` to help monitor CPU usage on the server hosts. For exampl
 ```bash
 dool -T --cpu -C total --output (filename).csv --noupdate
 ```
-Replace `filename` with the actual file name that you want. The output CSV file can be imported to any spreadsheet applications. The total CPU usage is `100 - idl` where `idl` is the column showing idle percentage. The `epoch` column shows the timestamp.
+Replace `filename` with the actual file name that you want. The output CSV file can be imported to any spreadsheet applications. The total CPU usage is `100 - idl` where `idl` is the column showing idle percentage. The `epoch` column shows the timestamp. To compare or to aggregate the values with other hosts, ensure to use the same time series by aligning the timestamp using the `epoch` columns.
 
 12. On the client host, specify the object request list with `export s3_objects_input_file=(path)`.
 
