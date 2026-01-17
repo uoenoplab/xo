@@ -54,6 +54,12 @@ For example, to use only eBPF forwarding on interface `ens1f0np0` with 32 thread
 ./server.out ens1f0np0 32 1 0 0 0 
 ```
 
+You can use the `dool` to help monitor CPU usage on the server hosts. For example, run in a seperate terminal of every hosts:
+```bash
+dool -T --cpu -C total -d --output (filename).csv --noupdate
+```
+Replace `filename` with the actual file name that you want. The output CSV file can be imported to any spreadsheet applications. The total CPU usage is `100 - idl` where `idl` is the column showing idle percentage. The `epoch` column shows the timestamp.
+
 12. On the client host, specify the object request list with `export s3_objects_input_file=(path)`.
 
 13. Run wrk against the frontend server from the client host, for example, to use 32 threads and 200 connections for 10 seconds:
