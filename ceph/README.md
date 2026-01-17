@@ -56,7 +56,7 @@ For example, to use only eBPF forwarding on interface `ens1f0np0` with 32 thread
 
 You can use the `dool` to help monitor CPU usage on the server hosts. For example, run in a seperate terminal of every hosts:
 ```bash
-dool -T --cpu -C total -d --output (filename).csv --noupdate
+dool -T --cpu -C total --output (filename).csv --noupdate
 ```
 Replace `filename` with the actual file name that you want. The output CSV file can be imported to any spreadsheet applications. The total CPU usage is `100 - idl` where `idl` is the column showing idle percentage. The `epoch` column shows the timestamp.
 
