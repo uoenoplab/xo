@@ -57,6 +57,12 @@ sudo apt-get install -y libtommath-dev libtomcrypt-dev
 # Network libraries
 sudo apt-get install -y libmnl-dev
 ```
+Install `dool` to facilate CPU usge monitoring.
+```bash
+git clone https://github.com/scottchiefbaker/dool
+cd dool
+python3 install
+```
 
 ### Client Machine
 
